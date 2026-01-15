@@ -1,7 +1,7 @@
 import Hero from "./Hero"
 import { getQuoteOfTheDay } from "../data/quotes"
 
-export default function Home({ goFirstYear }) {
+export default function Home({ openFirstYear, openSecondYear }) {
   const quote = getQuoteOfTheDay()
 
   return (
@@ -25,11 +25,11 @@ export default function Home({ goFirstYear }) {
           <span className="block mt-3 h-[2px] w-20 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full"></span>
         </h2>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {/* Year cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* First Year */}
           <div
-            onClick={goFirstYear}
+            onClick={openFirstYear}
             className="
               cursor-pointer
               bg-gradient-to-br
@@ -37,29 +37,44 @@ export default function Home({ goFirstYear }) {
               via-slate-700/60
               to-teal-800/70
               rounded-3xl
-              p-8
+              p-10
               transition-all
               duration-300
               hover:scale-[1.04]
               hover:shadow-[0_25px_60px_rgba(15,23,42,0.6)]
             "
           >
-            <h3 className="text-xl font-semibold mb-3 text-slate-100">
+            <h3 className="text-2xl font-semibold mb-3 text-slate-100">
               First Year
             </h3>
             <p className="text-slate-300">
-              Semester-wise syllabus & materials
+              Semester I & II · Core LIS Foundations
             </p>
           </div>
 
           {/* Second Year */}
-          <div className="bg-gradient-to-br from-slate-700/30 to-slate-800/30 rounded-3xl p-8 text-slate-300">
-            Second Year
-          </div>
-
-          {/* UGC NET */}
-          <div className="bg-gradient-to-br from-slate-700/30 to-slate-800/30 rounded-3xl p-8 text-slate-300">
-            UGC NET
+          <div
+            onClick={openSecondYear}
+            className="
+              cursor-pointer
+              bg-gradient-to-br
+              from-teal-800/70
+              via-slate-700/60
+              to-indigo-800/70
+              rounded-3xl
+              p-10
+              transition-all
+              duration-300
+              hover:scale-[1.04]
+              hover:shadow-[0_25px_60px_rgba(15,23,42,0.6)]
+            "
+          >
+            <h3 className="text-2xl font-semibold mb-3 text-slate-100">
+              Second Year
+            </h3>
+            <p className="text-slate-300">
+              Semester III & IV · Advanced LIS & Research
+            </p>
           </div>
         </div>
       </main>

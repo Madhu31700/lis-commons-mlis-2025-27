@@ -1,14 +1,60 @@
 import { useState } from "react"
 import Home from "./components/Home"
-import FirstYear from "./components/FirstYear"
+import Year from "./components/Year"
+import Semester from "./components/Semester"
+import Paper from "./components/Paper"
 
 export default function App() {
-  const [page, setPage] = useState("home")
+  const [view, setView] = useState("home")
+  const [year, setYear] = useState(null)
+  const [semester, setSemester] = useState(null)
+  const [paper, setPaper] = useState(null)
+
+  if (view === "paper") {
+    return (
+      <Paper
+        paper={paper}
+        goBack={() => setView("semester")}
+      />
+    )
+  }
+
+  if (view === "semester") {
+    return (
+      <Semester
+        semester={semester}
+        openPaper={(p) => {
+          setPaper(p)
+          setView("paper")
+        }}
+        goBack={() => setView("year")}
+      />
+    )
+  }
+
+  if (view === "year") {
+    return (
+      <Year
+        year={year}
+        openSemester={(s) => {
+          setSemester(s)
+          setView("semester")
+        }}
+        goBack={() => setView("home")}
+      />
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {page === "home" && <Home goFirstYear={() => setPage("first")} />}
-      {page === "first" && <FirstYear goHome={() => setPage("home")} />}
-    </div>
+    <Home
+      openFirstYear={() => {
+        setYear("First Year")
+        setView("year")
+      }}
+      openSecondYear={() => {
+        setYear("Second Year")
+        setView("year")
+      }}
+    />
   )
 }
