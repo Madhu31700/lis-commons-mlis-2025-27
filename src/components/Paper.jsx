@@ -15,7 +15,32 @@ const semester2Materials = {
   },
 ],
     ppt: [],
-    references: [],
+    references: [
+  {
+    title: "Selecting and Implementing an Integrated Library System",
+    file: "/materials/first-year/semester-2/paper-06/selecting-and-implementing-an-integrated-library-system.pdf",
+  },
+  {
+    title: "Human Resource Management: A Contemporary Approach",
+    file: "/materials/first-year/semester-2/paper-06/human-resource-management-a-contemporary-approach.pdf",
+  },
+  {
+    title: "Fundamentals of Collection Development and Management",
+    file: "/materials/first-year/semester-2/paper-06/fundamentals-of-collection-development-and-management.pdf",
+  },
+  {
+    title: "Principles for the Handling",
+    file: "/materials/first-year/semester-2/paper-06/principles-for-the-handling.pdf",
+  },
+  {
+    title: "Management Challenges for the 21st Century",
+    file: "/materials/first-year/semester-2/paper-06/management-challenges-for-the-21st-century.pdf",
+  },
+  {
+    title: "Management Basics for Information Professionals",
+    file: "/materials/first-year/semester-2/paper-06/management-basics-for-information-professionals.pdf",
+  },
+],
     questions: [],
   },
 }
