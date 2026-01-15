@@ -83,13 +83,14 @@ export default function Paper({ paper, goBack }) {
               {data.notes.map((n) => (
                 <li key={n.file}>
                   <a
-                    href={n.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-400 hover:underline"
-                  >
-                    {n.title}
-                  </a>
+  href={n.file}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={(e) => e.stopPropagation()}
+  className="text-indigo-400 hover:underline"
+>
+  {n.title}
+</a>
                 </li>
               ))}
             </ul>
