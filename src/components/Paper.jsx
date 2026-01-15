@@ -43,6 +43,26 @@ const semester2Materials = {
     ],
     questions: [],
   },
+
+  "Paper 07 – Digital Libraries": {
+    notes: [
+      {
+        title: "Digital Library – Overview (PDF)",
+        file: "/materials/first-year/semester-2/paper-07/digital-library.pdf",
+      },
+      {
+        title: "DSpace 9 – Data Notes (PDF)",
+        file: "/materials/first-year/semester-2/paper-07/dspace-9-data.pdf",
+      },
+      {
+        title: "Digital Library – Core Concepts (PDF)",
+        file: "/materials/first-year/semester-2/paper-07/digital-library-core.pdf",
+      },
+    ],
+    ppt: [],
+    references: [],
+    questions: [],
+  },
 }
 
 export default function Paper({ paper, goBack }) {
@@ -54,7 +74,6 @@ export default function Paper({ paper, goBack }) {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-24">
-      {/* Back */}
       <button
         onClick={goBack}
         className="mb-10 text-indigo-400 hover:underline"
@@ -63,19 +82,16 @@ export default function Paper({ paper, goBack }) {
         ← Back to Semester
       </button>
 
-      {/* Paper title */}
       <h1 className="text-2xl font-bold mb-8 text-slate-100">
         {paper}
       </h1>
 
-      {/* Description */}
       <p className="text-slate-300 mb-12 max-w-3xl">
         This section will contain study materials for this paper.
         Notes, presentations, references, and question papers will be
         added gradually as the course progresses.
       </p>
 
-      {/* Material sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* NOTES */}
         <div className="bg-slate-800/50 rounded-2xl p-8">
@@ -88,7 +104,7 @@ export default function Paper({ paper, goBack }) {
                   <button
                     type="button"
                     onClick={() => openFile(n.file)}
-                    className="text-indigo-400 hover:underline"
+                    className="text-indigo-400 hover:underline text-left"
                   >
                     {n.title}
                   </button>
@@ -110,38 +126,17 @@ export default function Paper({ paper, goBack }) {
           </p>
         </div>
 
-        {/* REFERENCES — THIS WAS MISSING EARLIER */}
+        {/* REFERENCES */}
         <div className="bg-slate-800/50 rounded-2xl p-8">
-          <h2 className="text-lg font-semibold mb-2">
-            📚 Reference Materials
-          </h2>
-
-          {data && data.references.length > 0 ? (
-            <ul className="space-y-2 text-sm">
-              {data.references.map((r) => (
-                <li key={r.file}>
-                  <button
-                    type="button"
-                    onClick={() => openFile(r.file)}
-                    className="text-indigo-400 hover:underline"
-                  >
-                    {r.title}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-slate-400 text-sm">
-              Books, articles, and external readings.
-            </p>
-          )}
+          <h2 className="text-lg font-semibold mb-2">📚 Reference Materials</h2>
+          <p className="text-slate-400 text-sm">
+            Books, articles, and external readings.
+          </p>
         </div>
 
         {/* QUESTIONS */}
         <div className="bg-slate-800/50 rounded-2xl p-8">
-          <h2 className="text-lg font-semibold mb-2">
-            📝 Question Papers
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">📝 Question Papers</h2>
           <p className="text-slate-400 text-sm">
             Previous year and practice question papers.
           </p>
