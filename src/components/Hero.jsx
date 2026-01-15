@@ -4,7 +4,7 @@ export default function Hero() {
   const quote = getQuoteOfTheDay()
 
   return (
-    <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative h-[90vh] flex items-center justify-center overflow-hidden select-none">
       {/* Background Images */}
       <div className="absolute inset-0">
         <img
@@ -16,7 +16,7 @@ export default function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-4xl px-6 text-center">
+      <div className="relative z-10 max-w-4xl px-6 text-center pointer-events-auto">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
           The LIS Commons
         </h1>
@@ -39,9 +39,7 @@ export default function Hero() {
           </p>
         </div>
 
-        <button className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 transition font-semibold">
-          Enter Repository
-        </button>
+      
       </div>
     </section>
   )
