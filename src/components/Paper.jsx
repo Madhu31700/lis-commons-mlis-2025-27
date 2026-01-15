@@ -1,44 +1,19 @@
 const semester2Materials = {
   "Paper 06 – Library Management and Automation": {
     notes: [
-      {
-        title: "Unit-wise Notes (PDF)",
-        file: "/materials/first-year/semester-2/paper-06/syllabus.pdf",
-      },
-    ],
-    ppt: [],
-    references: [],
-    questions: [],
+  {
+    title: "Syllabus (PDF)",
+    file: "/materials/first-year/semester-2/paper-06/syllabus.pdf",
   },
-
-  "Paper 07 – Digital Libraries": {
-    notes: [
-      {
-        title: "Lecture Notes (PDF)",
-        file: "/materials/first-year/semester-2/paper-07/notes.pdf",
-      },
-    ],
-    ppt: [],
-    references: [],
-    questions: [],
+  {
+    title: "Unit 1 Notes (PDF)",
+    file: "/materials/first-year/semester-2/paper-06/unit1-notes.pdf",
   },
-
-  "Paper 08 – Knowledge Management": {
-    notes: [],
-    ppt: [],
-    references: [],
-    questions: [],
+  {
+    title: "Unit 2 Notes (PDF)",
+    file: "/materials/first-year/semester-2/paper-06/unit2-notes.pdf",
   },
-
-  "Paper 09 – Elements of Mathematics and Statistics": {
-    notes: [],
-    ppt: [],
-    references: [],
-    questions: [],
-  },
-
-  "Paper 10 – Colloquium and Study of Subject": {
-    notes: [],
+],
     ppt: [],
     references: [],
     questions: [],
@@ -48,12 +23,17 @@ const semester2Materials = {
 export default function Paper({ paper, goBack }) {
   const data = semester2Materials[paper]
 
+  const openFile = (file) => {
+    window.open(file, "_blank", "noopener,noreferrer")
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-24">
       {/* Back */}
       <button
         onClick={goBack}
         className="mb-10 text-indigo-400 hover:underline"
+        type="button"
       >
         ← Back to Semester
       </button>
@@ -81,20 +61,16 @@ export default function Paper({ paper, goBack }) {
           {data && data.notes.length > 0 ? (
             <ul className="space-y-2 text-sm">
               {data.notes.map((n) => (
-  <li key={n.file}>
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        window.open(n.file, "_blank", "noopener,noreferrer")
-      }}
-      className="text-indigo-400 hover:underline text-left"
-    >
-      {n.title}
-    </button>
-  </li>
-))}
+                <li key={n.file}>
+                  <button
+                    type="button"
+                    onClick={() => openFile(n.file)}
+                    className="text-indigo-400 hover:underline"
+                  >
+                    {n.title}
+                  </button>
+                </li>
+              ))}
             </ul>
           ) : (
             <p className="text-slate-400 text-sm">
@@ -108,27 +84,9 @@ export default function Paper({ paper, goBack }) {
           <h2 className="text-lg font-semibold mb-2">
             📊 PPT Slides
           </h2>
-
-          {data && data.ppt.length > 0 ? (
-            <ul className="space-y-2 text-sm">
-              {data.ppt.map((p) => (
-                <li key={p.file}>
-                  <a
-                    href={p.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-400 hover:underline"
-                  >
-                    {p.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-slate-400 text-sm">
-              Classroom presentations will be added here.
-            </p>
-          )}
+          <p className="text-slate-400 text-sm">
+            Classroom presentations will be added here.
+          </p>
         </div>
 
         {/* REFERENCES */}
@@ -136,55 +94,19 @@ export default function Paper({ paper, goBack }) {
           <h2 className="text-lg font-semibold mb-2">
             📚 Reference Materials
           </h2>
-
-          {data && data.references.length > 0 ? (
-            <ul className="space-y-2 text-sm">
-              {data.references.map((r) => (
-                <li key={r.file}>
-                  <a
-                    href={r.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-400 hover:underline"
-                  >
-                    {r.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-slate-400 text-sm">
-              Books, articles, and external readings.
-            </p>
-          )}
+          <p className="text-slate-400 text-sm">
+            Books, articles, and external readings.
+          </p>
         </div>
 
-        {/* QUESTION PAPERS */}
+        {/* QUESTIONS */}
         <div className="bg-slate-800/50 rounded-2xl p-8">
           <h2 className="text-lg font-semibold mb-2">
             📝 Question Papers
           </h2>
-
-          {data && data.questions.length > 0 ? (
-            <ul className="space-y-2 text-sm">
-              {data.questions.map((q) => (
-                <li key={q.file}>
-                  <a
-                    href={q.file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-400 hover:underline"
-                  >
-                    {q.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-slate-400 text-sm">
-              Previous year and practice question papers.
-            </p>
-          )}
+          <p className="text-slate-400 text-sm">
+            Previous year and practice question papers.
+          </p>
         </div>
       </div>
     </div>
