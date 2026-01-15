@@ -81,18 +81,20 @@ export default function Paper({ paper, goBack }) {
           {data && data.notes.length > 0 ? (
             <ul className="space-y-2 text-sm">
               {data.notes.map((n) => (
-                <li key={n.file}>
-                  <a
-  href={n.file}
-  target="_blank"
-  rel="noopener noreferrer"
-  onClick={(e) => e.stopPropagation()}
-  className="text-indigo-400 hover:underline"
->
-  {n.title}
-</a>
-                </li>
-              ))}
+  <li key={n.file}>
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        window.open(n.file, "_blank", "noopener,noreferrer")
+      }}
+      className="text-indigo-400 hover:underline text-left"
+    >
+      {n.title}
+    </button>
+  </li>
+))}
             </ul>
           ) : (
             <p className="text-slate-400 text-sm">
