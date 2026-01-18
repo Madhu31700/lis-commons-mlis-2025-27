@@ -3,12 +3,30 @@ import Home from "./components/Home"
 import Year from "./components/Year"
 import Semester from "./components/Semester"
 import Paper from "./components/Paper"
+import InternshipForm from "./components/InternshipForm"
+import PlacementDashboard from "./components/PlacementDashboard"
 
 export default function App() {
   const [view, setView] = useState("home")
   const [year, setYear] = useState(null)
   const [semester, setSemester] = useState(null)
   const [paper, setPaper] = useState(null)
+
+  if (view === "dashboard") {
+    return (
+      <PlacementDashboard
+        goBack={() => setView("home")}
+      />
+    )
+  }
+
+  if (view === "internship") {
+    return (
+      <InternshipForm
+        goBack={() => setView("home")}
+      />
+    )
+  }
 
   if (view === "paper") {
     return (
@@ -54,6 +72,12 @@ export default function App() {
       openSecondYear={() => {
         setYear("Second Year")
         setView("year")
+      }}
+      openInternshipForm={() => {
+        setView("internship")
+      }}
+      openDashboard={() => {
+        setView("dashboard")
       }}
     />
   )

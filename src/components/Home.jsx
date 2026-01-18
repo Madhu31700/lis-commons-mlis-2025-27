@@ -1,8 +1,22 @@
 import Hero from "./Hero"
 import { getQuoteOfTheDay } from "../data/quotes"
+import { auth } from "../firebase"
 
-export default function Home({ openFirstYear, openSecondYear }) {
+const PLACEMENT_EMAILS = [
+  "madhu@drtc.isibang.ac.in",
+  "amisha@drtc.isibang.ac.in",
+]
+
+export default function Home({
+  openFirstYear,
+  openSecondYear,
+  openInternshipForm,
+  openDashboard,
+}) {
   const quote = getQuoteOfTheDay()
+  const user = auth.currentUser
+  const isPlacementRep =
+    user && PLACEMENT_EMAILS.includes(user.email)
 
   return (
     <>
@@ -26,7 +40,7 @@ export default function Home({ openFirstYear, openSecondYear }) {
         </h2>
 
         {/* Year cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-24">
           {/* First Year */}
           <div
             onClick={openFirstYear}
@@ -77,6 +91,59 @@ export default function Home({ openFirstYear, openSecondYear }) {
             </p>
           </div>
         </div>
+
+        {/* Internship Section */}
+        <section className="mt-32 text-center">
+          <h3 className="text-2xl font-semibold mb-4 text-slate-100">
+            Internship & Placement Coordination
+          </h3>
+
+          <p className="text-slate-400 mb-8 max-w-2xl mx-auto">
+            This form helps the placement representatives understand internship
+            interests of MLIS 2025–2027 students.
+          </p>
+
+          <button
+            onClick={openInternshipForm}
+            className="
+              px-10 py-4
+              rounded-full
+              bg-gradient-to-r from-indigo-600 to-teal-500
+              hover:from-indigo-700 hover:to-teal-600
+              transition
+              text-white
+              tracking-wide
+              text-lg
+              shadow-lg
+            "
+          >
+            Open Internship Interest Form
+          </button>
+
+          {/* Placement Dashboard Button (VISIBLE ONLY TO PLACEMENT REPS) */}
+          {isPlacementRep && (
+            <div className="mt-10">
+              <button
+                onClick={openDashboard}
+                className="
+                  px-8 py-3
+                  rounded-full
+                  bg-slate-800
+                  hover:bg-slate-700
+                  transition
+                  text-slate-200
+                  border border-slate-700
+                "
+              >
+                Placement Representative Dashboard
+              </button>
+            </div>
+          )}
+
+          <p className="mt-4 text-sm text-slate-500">
+            Accessible only within the Librandhana MLIS community
+          </p>
+        </section>
       </main>
     </>
   )
