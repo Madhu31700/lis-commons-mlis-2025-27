@@ -1,260 +1,215 @@
 import { useEffect, useState } from "react"
-import { auth, db } from "../firebase"
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "../firebase"
+import { useAuth } from "../context/AuthContext"
 
 export default function InternshipForm({ goBack }) {
-  const user = auth.currentUser
-
-  const [form, setForm] = useState({
+  const { user } = useAuth()
+  const [data, setData] = useState({
     name: "",
     roll: "",
-    sectors: [],
-    roles: [],
-    inst1: "",
-    inst2: "",
-    inst3: "",
+    programme: "MLIS 2025–2027",
+    phone: "",
+    sector: [],
+    libraryType: "",
+    corporateRole: "",
+    location: "",
+    relocate: "",
+    pref1: "",
+    pref2: "",
+    pref3: "",
+    skills: [],
+    tools: [],
+    unpaid: "",
     cvLink: "",
+    cvVisibility: "placement",
     consent: false,
   })
 
+  const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState("")
-  const [checking, setChecking] = useState(true)
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false)
 
-  const sectorOptions = [
-    "Academic Libraries",
-    "Public Libraries",
-    "Special Libraries",
-    "Digital Libraries / Repositories",
-    "Knowledge Management / Corporate LIS",
-    "Archives & Museums",
-  ]
-
-  const roleOptions = [
-    "Koha (Library Automation)",
-    "DSpace (Institutional Repositories)",
-    "Digital Library Design",
-    "Metadata & Cataloguing (MARC, RDA)",
-    "Collection Development",
-    "Reference & Information Services",
-    "Knowledge Management (Introductory)",
-    "Open Source LIS Tools",
-    "Content Organization & Taxonomies",
-  ]
-
-  /* -------- Check if already submitted -------- */
   useEffect(() => {
-    const checkSubmission = async () => {
-      const q = query(
-        collection(db, "internshipResponses"),
-        where("email", "==", user.email)
-      )
-      const snapshot = await getDocs(q)
-      if (!snapshot.empty) {
-        setAlreadySubmitted(true)
-      }
-      setChecking(false)
-    }
+    if (!user) return
+    const ref = doc(db, "internships", user.email)
+    getDoc(ref).then((snap) => {
+      if (snap.exists()) setData(snap.data())
+      setLoading(false)
+    })
+  }, [user])
 
-    checkSubmission()
-  }, [user.email])
-
-  const toggleArrayValue = (key, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: prev[key].includes(value)
-        ? prev[key].filter((v) => v !== value)
-        : [...prev[key], value],
+  const toggleArray = (field, value) => {
+    setData((d) => ({
+      ...d,
+      [field]: d[field].includes(value)
+        ? d[field].filter((v) => v !== value)
+        : [...d[field], value],
     }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    if (!form.consent) {
-      setStatus("Consent is required.")
+  const submit = async () => {
+    if (!data.consent) {
+      alert("Consent is mandatory")
       return
     }
-
-    try {
-      await addDoc(collection(db, "internshipResponses"), {
-        ...form,
-        email: user.email,
-        createdAt: serverTimestamp(),
-      })
-      setAlreadySubmitted(true)
-    } catch (err) {
-      setStatus("Error submitting form.")
-    }
+    await setDoc(doc(db, "internships", user.email), {
+      ...data,
+      email: user.email,
+      updatedAt: serverTimestamp(),
+    })
+    setStatus("Details saved successfully.")
   }
 
-  /* -------- Loading state -------- */
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400">
-        Checking submission status…
-      </div>
-    )
-  }
+  if (loading) return null
 
-  /* -------- Already submitted -------- */
-  if (alreadySubmitted) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 px-6">
-        <h1 className="text-3xl font-semibold mb-4">
-          Internship Form Submitted
-        </h1>
-
-        <p className="text-slate-400 max-w-xl text-center mb-10">
-          You have already submitted your internship interest details.
-          If any changes are required, please contact the placement
-          representative.
-        </p>
-
-        <button
-          onClick={goBack}
-          className="px-6 py-3 bg-indigo-600 rounded hover:bg-indigo-700"
-        >
-          Back to Home
-        </button>
-      </div>
-    )
-  }
-
-  /* -------- Form -------- */
   return (
-    <div className="max-w-3xl mx-auto px-6 py-20 text-slate-100">
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="max-w-4xl mx-auto px-6 py-24 text-slate-100">
+      <button onClick={goBack} className="text-indigo-400 mb-6">
+        ← Back
+      </button>
+
+      <h1 className="text-2xl font-bold mb-8">
         Internship Interest Form
       </h1>
 
-      <p className="text-slate-400 mb-10">
-        MLIS 2025–2027 | For placement & internship coordination only
-      </p>
+      {/* BASIC INFO */}
+      <Section title="Basic Information">
+        <Input label="Full Name" value={data.name} onChange={(v) => setData({ ...data, name: v })} />
+        <Input label="Roll / Register Number" value={data.roll} onChange={(v) => setData({ ...data, roll: v })} />
+        <Input label="Programme" value={data.programme} disabled />
+        <Input label="Phone (optional)" value={data.phone} onChange={(v) => setData({ ...data, phone: v })} />
+      </Section>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Identity */}
-        <div>
-          <label className="block mb-2">Full Name</label>
-          <input
-            required
-            className="w-full px-4 py-3 bg-slate-900 rounded"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </div>
+      {/* SECTOR */}
+      <Section title="Primary Sector of Interest (multiple)">
+        {[
+          "Academic Libraries",
+          "Public Libraries",
+          "Special Libraries",
+          "Corporate / KM",
+          "Publishing",
+          "Archives & Museums",
+          "Digital Libraries",
+          "Data / Analytics",
+          "Not decided",
+        ].map((s) => (
+          <Check key={s} label={s} checked={data.sector.includes(s)} onChange={() => toggleArray("sector", s)} />
+        ))}
 
-        <div>
-          <label className="block mb-2">Roll / Register Number</label>
-          <input
-            required
-            className="w-full px-4 py-3 bg-slate-900 rounded"
-            value={form.roll}
-            onChange={(e) => setForm({ ...form, roll: e.target.value })}
-          />
-        </div>
-
-        {/* Sectors */}
-        <div>
-          <p className="mb-2 font-semibold">Internship Sector Interest</p>
-          {sectorOptions.map((s) => (
-            <label key={s} className="block">
-              <input
-                type="checkbox"
-                className="mr-2"
-                checked={form.sectors.includes(s)}
-                onChange={() => toggleArrayValue("sectors", s)}
-              />
-              {s}
-            </label>
-          ))}
-        </div>
-
-        {/* Roles */}
-        <div>
-          <p className="mb-2 font-semibold">Role / Skill Interest</p>
-          {roleOptions.map((r) => (
-            <label key={r} className="block">
-              <input
-                type="checkbox"
-                className="mr-2"
-                checked={form.roles.includes(r)}
-                onChange={() => toggleArrayValue("roles", r)}
-              />
-              {r}
-            </label>
-          ))}
-        </div>
-
-        {/* Institutions */}
-        <div>
-          <label className="block mb-2">
-            Preferred Institution / Company (max 3)
-          </label>
-          <input
-            className="w-full mb-2 px-4 py-3 bg-slate-900 rounded"
-            placeholder="Preference 1"
-            value={form.inst1}
-            onChange={(e) => setForm({ ...form, inst1: e.target.value })}
-          />
-          <input
-            className="w-full mb-2 px-4 py-3 bg-slate-900 rounded"
-            placeholder="Preference 2"
-            value={form.inst2}
-            onChange={(e) => setForm({ ...form, inst2: e.target.value })}
-          />
-          <input
-            className="w-full px-4 py-3 bg-slate-900 rounded"
-            placeholder="Preference 3"
-            value={form.inst3}
-            onChange={(e) => setForm({ ...form, inst3: e.target.value })}
-          />
-        </div>
-
-        {/* CV Link */}
-        <div>
-          <label className="block mb-2">CV Link</label>
-          <input
-            required
-            className="w-full px-4 py-3 bg-slate-900 rounded"
-            placeholder="Restricted access – shared with placement rep only"
-            value={form.cvLink}
-            onChange={(e) => setForm({ ...form, cvLink: e.target.value })}
-          />
-        </div>
-
-        {/* Consent */}
-        <label className="block">
-          <input
-            type="checkbox"
-            className="mr-2"
-            checked={form.consent}
-            onChange={(e) => setForm({ ...form, consent: e.target.checked })}
-          />
-          I consent to share this information for internship coordination
-          within MLIS Librandhana only.
-        </label>
-
-        <button
-          type="submit"
-          className="px-6 py-3 bg-indigo-600 rounded hover:bg-indigo-700"
-        >
-          Submit
-        </button>
-
-        {status && (
-          <p className="mt-4 text-sm text-slate-300">
-            {status}
-          </p>
+        {data.sector.some((s) => s.includes("Libraries")) && (
+          <Input label="If Library, specify type" value={data.libraryType} onChange={(v) => setData({ ...data, libraryType: v })} />
         )}
-      </form>
+
+        {data.sector.includes("Corporate / KM") && (
+          <Input label="If Corporate, role interest" value={data.corporateRole} onChange={(v) => setData({ ...data, corporateRole: v })} />
+        )}
+      </Section>
+
+      {/* LOCATION */}
+      <Section title="Preferred Location">
+        <Input label="City / State" value={data.location} onChange={(v) => setData({ ...data, location: v })} />
+        <Select label="Open to relocation?" value={data.relocate} options={["Yes", "No", "Depends"]} onChange={(v) => setData({ ...data, relocate: v })} />
+      </Section>
+
+      {/* INSTITUTIONS */}
+      <Section title="Preferred Institutions / Companies">
+        <Input label="Preference 1" value={data.pref1} onChange={(v) => setData({ ...data, pref1: v })} />
+        <Input label="Preference 2" value={data.pref2} onChange={(v) => setData({ ...data, pref2: v })} />
+        <Input label="Preference 3" value={data.pref3} onChange={(v) => setData({ ...data, pref3: v })} />
+      </Section>
+
+      {/* SKILLS */}
+      <Section title="Skills & Tools (as per syllabus)">
+        {["Cataloguing", "Classification", "Koha", "DSpace", "Metadata", "Digitisation"].map((s) => (
+          <Check key={s} label={s} checked={data.skills.includes(s)} onChange={() => toggleArray("skills", s)} />
+        ))}
+        {["Koha", "DSpace", "Excel", "OpenRefine", "Basic Python"].map((t) => (
+          <Check key={t} label={t} checked={data.tools.includes(t)} onChange={() => toggleArray("tools", t)} />
+        ))}
+      </Section>
+
+      {/* CV */}
+      <Section title="CV / Resume">
+        <Input label="CV link (Google Drive / PDF)" value={data.cvLink} onChange={(v) => setData({ ...data, cvLink: v })} />
+        <Select
+          label="CV visibility"
+          value={data.cvVisibility}
+          options={[
+            { label: "Only Placement Representative", value: "placement" },
+            { label: "Allow classmates", value: "class" },
+            { label: "Hide completely", value: "hidden" },
+          ]}
+          onChange={(v) => setData({ ...data, cvVisibility: v })}
+        />
+      </Section>
+
+      {/* CONSENT */}
+      <Section title="Consent">
+        <Check
+          label="I consent to share this information for internship and placement coordination within Librandhana."
+          checked={data.consent}
+          onChange={() => setData({ ...data, consent: !data.consent })}
+        />
+      </Section>
+
+      <button onClick={submit} className="mt-8 bg-indigo-600 px-6 py-3 rounded">
+        Save / Update
+      </button>
+
+      {status && <p className="mt-4 text-green-400">{status}</p>}
     </div>
+  )
+}
+
+/* ---------- SMALL UI HELPERS ---------- */
+function Section({ title, children }) {
+  return (
+    <div className="mb-10">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      <div className="space-y-3">{children}</div>
+    </div>
+  )
+}
+
+function Input({ label, value, onChange, disabled }) {
+  return (
+    <div>
+      <label className="block text-sm mb-1">{label}</label>
+      <input
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-slate-800 p-2 rounded"
+      />
+    </div>
+  )
+}
+
+function Select({ label, value, options, onChange }) {
+  return (
+    <div>
+      <label className="block text-sm mb-1">{label}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-800 p-2 rounded">
+        <option value="">Select</option>
+        {options.map((o) =>
+          typeof o === "string" ? (
+            <option key={o}>{o}</option>
+          ) : (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          )
+        )}
+      </select>
+    </div>
+  )
+}
+
+function Check({ label, checked, onChange }) {
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" checked={checked} onChange={onChange} />
+      {label}
+    </label>
   )
 }
