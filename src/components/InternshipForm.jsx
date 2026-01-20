@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext"
 
 export default function InternshipForm({ goBack }) {
   const { user } = useAuth()
+
   const [data, setData] = useState({
     name: "",
     roll: "",
@@ -22,6 +23,7 @@ export default function InternshipForm({ goBack }) {
     tools: [],
     unpaid: "",
     cvLink: "",
+    cvPhoto: "",
     cvVisibility: "placement",
     consent: false,
   })
@@ -33,7 +35,7 @@ export default function InternshipForm({ goBack }) {
     if (!user) return
     const ref = doc(db, "internships", user.email)
     getDoc(ref).then((snap) => {
-      if (snap.exists()) setData(snap.data())
+      if (snap.exists()) setData((d) => ({ ...d, ...snap.data() }))
       setLoading(false)
     })
   }, [user])
@@ -52,11 +54,13 @@ export default function InternshipForm({ goBack }) {
       alert("Consent is mandatory")
       return
     }
+
     await setDoc(doc(db, "internships", user.email), {
       ...data,
       email: user.email,
       updatedAt: serverTimestamp(),
     })
+
     setStatus("Details saved successfully.")
   }
 
@@ -93,22 +97,40 @@ export default function InternshipForm({ goBack }) {
           "Data / Analytics",
           "Not decided",
         ].map((s) => (
-          <Check key={s} label={s} checked={data.sector.includes(s)} onChange={() => toggleArray("sector", s)} />
+          <Check
+            key={s}
+            label={s}
+            checked={data.sector.includes(s)}
+            onChange={() => toggleArray("sector", s)}
+          />
         ))}
 
         {data.sector.some((s) => s.includes("Libraries")) && (
-          <Input label="If Library, specify type" value={data.libraryType} onChange={(v) => setData({ ...data, libraryType: v })} />
+          <Input
+            label="If Library, specify type"
+            value={data.libraryType}
+            onChange={(v) => setData({ ...data, libraryType: v })}
+          />
         )}
 
         {data.sector.includes("Corporate / KM") && (
-          <Input label="If Corporate, role interest" value={data.corporateRole} onChange={(v) => setData({ ...data, corporateRole: v })} />
+          <Input
+            label="If Corporate, role interest"
+            value={data.corporateRole}
+            onChange={(v) => setData({ ...data, corporateRole: v })}
+          />
         )}
       </Section>
 
       {/* LOCATION */}
       <Section title="Preferred Location">
         <Input label="City / State" value={data.location} onChange={(v) => setData({ ...data, location: v })} />
-        <Select label="Open to relocation?" value={data.relocate} options={["Yes", "No", "Depends"]} onChange={(v) => setData({ ...data, relocate: v })} />
+        <Select
+          label="Open to relocation?"
+          value={data.relocate}
+          options={["Yes", "No", "Depends"]}
+          onChange={(v) => setData({ ...data, relocate: v })}
+        />
       </Section>
 
       {/* INSTITUTIONS */}
@@ -120,9 +142,12 @@ export default function InternshipForm({ goBack }) {
 
       {/* SKILLS */}
       <Section title="Skills & Tools (as per syllabus)">
-        {["Cataloguing", "Classification", "Koha", "DSpace", "Metadata", "Digitisation"].map((s) => (
+        {/* Skills (conceptual) */}
+        {["Cataloguing", "Classification", "Metadata", "Digitisation"].map((s) => (
           <Check key={s} label={s} checked={data.skills.includes(s)} onChange={() => toggleArray("skills", s)} />
         ))}
+
+        {/* Tools (software) */}
         {["Koha", "DSpace", "Excel", "OpenRefine", "Basic Python"].map((t) => (
           <Check key={t} label={t} checked={data.tools.includes(t)} onChange={() => toggleArray("tools", t)} />
         ))}
@@ -130,14 +155,37 @@ export default function InternshipForm({ goBack }) {
 
       {/* CV */}
       <Section title="CV / Resume">
-        <Input label="CV link (Google Drive / PDF)" value={data.cvLink} onChange={(v) => setData({ ...data, cvLink: v })} />
+        <Input
+          label="CV link (Google Drive / PDF)"
+          value={data.cvLink}
+          onChange={(v) => setData({ ...data, cvLink: v })}
+        />
+
+        <Input
+          label="Profile Photo (JPG image link)"
+          value={data.cvPhoto}
+          onChange={(v) => setData({ ...data, cvPhoto: v })}
+        />
+
+        <p className="text-xs text-slate-400">
+          Upload JPG to Google Drive → Share → Anyone with link → View
+        </p>
+
+        {data.cvPhoto && (
+          <img
+            src={data.cvPhoto}
+            alt="Profile preview"
+            className="mt-3 w-20 h-20 rounded-full object-cover border border-slate-700"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+        )}
+
         <Select
           label="CV visibility"
           value={data.cvVisibility}
           options={[
             { label: "Only Placement Representative", value: "placement" },
             { label: "Allow classmates", value: "class" },
-            { label: "Hide completely", value: "hidden" },
           ]}
           onChange={(v) => setData({ ...data, cvVisibility: v })}
         />
@@ -162,6 +210,7 @@ export default function InternshipForm({ goBack }) {
 }
 
 /* ---------- SMALL UI HELPERS ---------- */
+
 function Section({ title, children }) {
   return (
     <div className="mb-10">
@@ -189,7 +238,11 @@ function Select({ label, value, options, onChange }) {
   return (
     <div>
       <label className="block text-sm mb-1">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-800 p-2 rounded">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-slate-800 p-2 rounded"
+      >
         <option value="">Select</option>
         {options.map((o) =>
           typeof o === "string" ? (

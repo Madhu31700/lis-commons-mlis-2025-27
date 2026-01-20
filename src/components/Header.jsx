@@ -8,7 +8,7 @@ const PLACEMENT_EMAILS = [
   "amisha@drtc.isibang.ac.in",
 ]
 
-export default function Header({ openDashboard }) {
+export default function Header({ openDashboard, goHome }) {
   const { user } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
 
@@ -19,9 +19,12 @@ export default function Header({ openDashboard }) {
     <>
       <header className="fixed top-0 w-full z-40 bg-slate-950/80 backdrop-blur border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <span className="text-lg font-semibold text-slate-100">
+          <button
+            onClick={goHome}
+            className="text-lg font-semibold text-slate-100 hover:text-white"
+          >
             LIBRANDHANA
-          </span>
+          </button>
 
           <div className="flex items-center gap-6">
             {user && (

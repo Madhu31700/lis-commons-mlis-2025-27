@@ -7,12 +7,17 @@ import Semester from "./components/Semester"
 import Paper from "./components/Paper"
 import InternshipForm from "./components/InternshipForm"
 import PlacementDashboard from "./components/PlacementDashboard"
+import Auth from "./components/Auth"
+import { useAuth } from "./context/AuthContext"
 
 export default function App() {
+  const { user } = useAuth()
+
   const [view, setView] = useState("home")
   const [year, setYear] = useState(null)
   const [semester, setSemester] = useState(null)
   const [paper, setPaper] = useState(null)
+  const [showAuth, setShowAuth] = useState(false)
 
   const [showIntro, setShowIntro] = useState(
     !sessionStorage.getItem("introSeen")
@@ -64,7 +69,13 @@ export default function App() {
           setYear("Second Year")
           setView("year")
         }}
-        openInternshipForm={() => setView("internship")}
+        openInternshipForm={() => {
+          if (!user) {
+            setShowAuth(true)
+          } else {
+            setView("internship")
+          }
+        }}
         openDashboard={() => setView("dashboard")}
       />
     )
@@ -72,8 +83,14 @@ export default function App() {
 
   return (
     <>
-      <Header openDashboard={() => setView("dashboard")} />
+      <Header
+        goHome={() => setView("home")}
+        openDashboard={() => setView("dashboard")}
+      />
+
       {showIntro ? <Intro onFinish={finishIntro} /> : content}
+
+      {showAuth && <Auth onClose={() => setShowAuth(false)} />}
     </>
   )
 }
