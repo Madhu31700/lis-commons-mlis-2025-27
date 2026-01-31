@@ -16,15 +16,18 @@ export default function Auth({ onClose }) {
   const submit = async () => {
     setMsg("")
     setLoading(true)
+
     try {
       if (mode === "login") {
         await signInWithEmailAndPassword(auth, email, password)
         onClose()
       }
+
       if (mode === "signup") {
         await createUserWithEmailAndPassword(auth, email, password)
         onClose()
       }
+
       if (mode === "reset") {
         await sendPasswordResetEmail(auth, email)
         setMsg(
@@ -34,6 +37,7 @@ export default function Auth({ onClose }) {
     } catch (e) {
       setMsg(e.message)
     }
+
     setLoading(false)
   }
 
@@ -54,48 +58,59 @@ export default function Auth({ onClose }) {
           {mode === "reset" && "Reset Password"}
         </h2>
 
-        <input
-          placeholder="Email"
-          className="w-full mb-3 p-2 bg-slate-800 rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        {mode !== "reset" && (
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-4 p-2 bg-slate-800 rounded"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        )}
-
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="w-full bg-indigo-600 py-2 rounded disabled:opacity-60"
+        {/* FORM (Enter key works) */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!loading) submit()
+          }}
         >
-          {mode === "login" && "Login"}
-          {mode === "signup" && "Sign Up"}
-          {mode === "reset" && "Send Reset Link"}
-        </button>
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full mb-3 p-2 bg-slate-800 rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          {mode !== "reset" && (
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full mb-4 p-2 bg-slate-800 rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 py-2 rounded disabled:opacity-60"
+          >
+            {mode === "login" && "Login"}
+            {mode === "signup" && "Sign Up"}
+            {mode === "reset" && "Send Reset Link"}
+          </button>
+        </form>
 
         <div className="mt-4 text-sm text-slate-400 space-y-2">
           {mode === "login" && (
             <>
-              <button onClick={() => setMode("signup")}>
+              <button type="button" onClick={() => setMode("signup")}>
                 Create new account
               </button>
               <br />
-              <button onClick={() => setMode("reset")}>
+              <button type="button" onClick={() => setMode("reset")}>
                 Forgot password?
               </button>
             </>
           )}
 
           {mode !== "login" && (
-            <button onClick={() => setMode("login")}>
+            <button type="button" onClick={() => setMode("login")}>
               ← Back to login
             </button>
           )}
