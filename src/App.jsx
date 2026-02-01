@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { doc, getDoc, updateDoc, increment, setDoc } from "firebase/firestore"
 import { db } from "./firebase"
 import Header from "./components/Header"
+import Footer from "./components/Footer" // <--- NEW IMPORT
 import Intro from "./components/Intro"
 import Home from "./components/Home"
 import Year from "./components/Year"
@@ -82,13 +83,12 @@ export default function App() {
       />
     )
   } else if (view === "ugc-net") {
-    /* --- NEW UGC NET SUB-MENU (Internal Component) --- */
+    /* --- UGC NET SUB-MENU --- */
     content = (
       <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100">
         <button onClick={handleGoHome} className="text-indigo-400 mb-8 flex items-center gap-2">← Back to Repository</button>
         <h2 className="text-3xl font-bold mb-12">UGC NET Materials <span className="text-slate-500 text-lg font-normal ml-2">/ Select Paper</span></h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-           {/* You can link these to actual paper components later */}
            <div onClick={() => alert("Paper 1 Materials coming soon!")} className="bg-slate-800 p-10 rounded-3xl border border-slate-700 hover:border-indigo-500 cursor-pointer transition-all hover:scale-[1.02]">
               <h3 className="text-2xl font-bold">Paper 1</h3>
               <p className="text-slate-400 mt-2">General Teaching & Research Aptitude</p>
@@ -121,11 +121,11 @@ export default function App() {
           setYear("Second Year")
           setView("year")
         }}
-        openUgcNet={() => setView("ugc-net")} // Opens the new UGC view
+        openUgcNet={() => setView("ugc-net")}
         openUpskilling={() => setView("upskilling")}
         openInternshipForm={() => {
           if (!user) {
-            setShowAuth(true) // Trigger Login if not logged in
+            setShowAuth(true)
           } else {
             setView("internship")
           }
@@ -140,38 +140,21 @@ export default function App() {
       <Header
         goHome={handleGoHome}
         openDashboard={() => setView("dashboard")}
-        onLogin={() => setShowAuth(true)} // Fixes "Login not working"
+        onLogin={() => setShowAuth(true)}
       />
 
       {showIntro ? <Intro onFinish={finishIntro} /> : (
         <div className="flex flex-col min-h-screen">
-          <div className="flex-grow">{content}</div>
           
-          {/* PROFESSIONAL FOOTER */}
-          <footer className="mt-32 border-t border-slate-800 bg-[#020617] py-16 px-6 relative z-10">
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-12">
-              <div className="max-w-md">
-                <div className="flex items-center gap-3 mb-6">
-                   <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-white">L</div>
-                   <h4 className="text-white font-black text-sm uppercase tracking-widest">Librandhana Portal</h4>
-                </div>
-                <p className="text-slate-500 text-xs leading-relaxed italic border-l-2 border-indigo-500/30 pl-4">
-                  "Content Owned and Maintained by the DRTC Community. 
-                  Designed, Developed and hosted as an Open Access Initiative."
-                </p>
-                <div className="mt-6 text-slate-400 text-xs font-medium">
-                  Concept Design: <span className="text-indigo-400 font-black tracking-widest uppercase">MADHU M</span>
-                </div>
-              </div>
+          {/* Main Content */}
+          <div className="flex-grow">
+            {content}
+          </div>
+          
+          {/* --- NEW FOOTER COMPONENT --- */}
+          {/* Pass the visitCount prop to the footer */}
+<Footer visitCount={visitCount} />
 
-              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] space-y-3 text-right">
-                <p>Infrastructure: Google Firebase & Supabase</p>
-                <p>Designed with Artificial Intelligence Tools</p>
-                <p>Resources Credit: DRTC, ISI Bangalore</p>
-                <p className="text-emerald-500 pt-4">Last Updated: Jan 31, 2026</p>
-              </div>
-            </div>
-          </footer>
         </div>
       )}
 
