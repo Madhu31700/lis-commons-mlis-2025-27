@@ -2,10 +2,8 @@ import { useState } from "react"
 
 /* =========================================
    DATA SOURCE
-   (Preserved your exact data structure)
    ========================================= */
 const semester2Materials = {
-  /* --- PAPER 06 --- */
   "Paper 06 – Library Management and Automation": {
     notes: [
       { title: "Syllabus (PDF)", file: "/materials/first-year/semester-2/paper-06/syllabus.pdf" },
@@ -23,8 +21,6 @@ const semester2Materials = {
     ],
     questions: [],
   },
-
-  /* --- PAPER 07 --- */
   "Paper 07 – Digital Libraries": {
     notes: [
       { title: "Digital Library – Overview", file: "/materials/first-year/semester-2/paper-07/digital-library.pdf" },
@@ -35,8 +31,6 @@ const semester2Materials = {
     references: [],
     questions: [],
   },
-
-  /* --- PAPER 08 --- */
   "Paper 08 – Knowledge Management": {
     notes: [
       { title: "Introduction to Knowledge Management", file: "/materials/first-year/semester-2/paper-08/km-introduction.pdf" },
@@ -53,21 +47,13 @@ const semester2Materials = {
     ],
     questions: [],
   },
-
-  /* --- PAPER 09 --- */
   "Paper 09 – Elements of Mathematics and Statistics": {
     notes: [], ppt: [], references: [], questions: [],
   },
-
-  /* --- PAPER 10 (SPECIAL COLLOQUIUM) --- */
   "Paper 10 – Colloquium and Study of Subject": {
     type: "colloquium", 
     group1: [
-      { 
-        title: "Colloquium Presentation 1", 
-        student: "Student Name", 
-        file: "/materials/first-year/semester-2/paper-10/colloquium-1.pdf" 
-      },
+      { title: "Colloquium Presentation 1", student: "Student Name", file: "/materials/first-year/semester-2/paper-10/colloquium-1.pdf" },
     ],
     group2: []
   },
@@ -89,21 +75,26 @@ export default function Paper({ paper, goBack }) {
     <div className="min-h-screen bg-[#020617] pb-20 font-sans selection:bg-indigo-500/30">
       
       {/* --- HERO HEADER --- */}
-      <div className="relative bg-slate-900 border-b border-white/5 py-16 px-6 overflow-hidden">
-        {/* Abstract Background Glow */}
+      <div className="relative bg-slate-900 border-b border-white/5 py-12 md:py-16 px-6 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/5 rounded-full blur-[80px] pointer-events-none"></div>
 
         <div className="max-w-6xl mx-auto relative z-10">
-          <button onClick={goBack} className="flex items-center gap-2 text-indigo-400 hover:text-white transition-colors mb-8 group text-xs font-bold uppercase tracking-widest">
+          
+          {/* Back Button with Larger Touch Area */}
+          <button 
+            onClick={goBack} 
+            className="flex items-center gap-2 text-indigo-400 hover:text-white transition-colors mb-6 group text-xs font-bold uppercase tracking-widest py-3 pr-4 -ml-2"
+          >
             <span className="bg-indigo-500/10 p-2 rounded-lg group-hover:bg-indigo-500 group-hover:text-white transition-all">← Back</span>
           </button>
           
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
-            {paper.split('–')[0]} <span className="block text-xl md:text-3xl text-slate-400 font-normal mt-1">{paper.split('–')[1]}</span>
+            {paper.split('–')[0]} 
+            <span className="block text-xl md:text-3xl text-slate-400 font-normal mt-1">{paper.split('–')[1]}</span>
           </h1>
           
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300 uppercase tracking-widest">Semester II</span>
             {isColloquium && <span className="px-3 py-1 rounded-full bg-indigo-900/50 border border-indigo-500/30 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Presentation Mode</span>}
           </div>
@@ -111,65 +102,18 @@ export default function Paper({ paper, goBack }) {
       </div>
 
       {/* --- MAIN CONTENT GRID --- */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        
+      <div className="max-w-6xl mx-auto px-6 py-8 md:py-12">
         {isColloquium ? (
-          /* ========================
-             COLLOQUIUM LAYOUT
-             ======================== */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ColloquiumCard 
-              group="Group 1" 
-              items={data.group1} 
-              onOpen={openFile} 
-              color="indigo"
-              desc="Metadata & Standards"
-            />
-            <ColloquiumCard 
-              group="Group 2" 
-              items={data.group2} 
-              onOpen={openFile} 
-              color="teal"
-              desc="Digital Preservation"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <ColloquiumCard group="Group 1" items={data.group1} onOpen={openFile} color="indigo" desc="Metadata & Standards" />
+            <ColloquiumCard group="Group 2" items={data.group2} onOpen={openFile} color="teal" desc="Digital Preservation" />
           </div>
         ) : (
-          /* ========================
-             STANDARD LAYOUT
-             ======================== */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ResourceCard 
-              title="Lecture Notes" 
-              icon="📘" 
-              items={data.notes} 
-              onOpen={openFile} 
-              theme="indigo"
-              emptyMsg="Notes will be uploaded after lectures."
-            />
-            <ResourceCard 
-              title="Presentations" 
-              icon="📊" 
-              items={data.ppt} 
-              onOpen={openFile} 
-              theme="violet"
-              emptyMsg="Classroom slides will appear here."
-            />
-            <ResourceCard 
-              title="Reference Material" 
-              icon="📚" 
-              items={data.references} 
-              onOpen={openFile} 
-              theme="emerald"
-              emptyMsg="Additional reading resources."
-            />
-            <ResourceCard 
-              title="Question Papers" 
-              icon="📝" 
-              items={data.questions} 
-              onOpen={openFile} 
-              theme="amber"
-              emptyMsg="Previous year & model papers."
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <ResourceCard title="Lecture Notes" icon="📘" items={data.notes} onOpen={openFile} theme="indigo" emptyMsg="Notes will be uploaded after lectures." />
+            <ResourceCard title="Presentations" icon="📊" items={data.ppt} onOpen={openFile} theme="violet" emptyMsg="Classroom slides will appear here." />
+            <ResourceCard title="Reference Material" icon="📚" items={data.references} onOpen={openFile} theme="emerald" emptyMsg="Additional reading resources." />
+            <ResourceCard title="Question Papers" icon="📝" items={data.questions} onOpen={openFile} theme="amber" emptyMsg="Previous year & model papers." />
           </div>
         )}
       </div>
@@ -177,12 +121,7 @@ export default function Paper({ paper, goBack }) {
   )
 }
 
-/* =========================================
-   BEAUTIFUL CARD COMPONENTS
-   ========================================= */
-
 function ResourceCard({ title, icon, items, onOpen, theme, emptyMsg }) {
-  // Theme styling logic
   const colors = {
     indigo: "from-indigo-500/10 to-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/50",
     violet: "from-violet-500/10 to-violet-500/5 border-violet-500/20 hover:border-violet-500/50",
@@ -197,7 +136,7 @@ function ResourceCard({ title, icon, items, onOpen, theme, emptyMsg }) {
   }
 
   return (
-    <div className={`bg-gradient-to-br ${colors[theme]} bg-slate-900/50 backdrop-blur-sm rounded-3xl p-8 border transition-all duration-300 group`}>
+    <div className={`bg-gradient-to-br ${colors[theme]} bg-slate-900/50 backdrop-blur-sm rounded-[1.5rem] md:rounded-3xl p-6 md:p-8 border transition-all duration-300 group`}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-white flex items-center gap-3">
           <span className="text-2xl">{icon}</span> {title}
@@ -211,13 +150,12 @@ function ResourceCard({ title, icon, items, onOpen, theme, emptyMsg }) {
             <button
               key={idx}
               onClick={() => onOpen(item.file)}
-              className="w-full text-left flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-white/5 hover:bg-slate-800 hover:border-white/10 hover:translate-x-1 transition-all group/item"
+              className="w-full text-left flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-white/5 hover:bg-slate-800 hover:border-white/10 active:scale-[0.98] transition-all group/item"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-1.5 h-1.5 rounded-full bg-current ${textColors[theme]}`}></div>
-                <span className="text-sm font-medium text-slate-300 group-hover/item:text-white truncate max-w-[200px] md:max-w-[280px]">{item.title}</span>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className={`flex-shrink-0 w-1.5 h-1.5 rounded-full bg-current ${textColors[theme]}`}></div>
+                <span className="text-sm font-medium text-slate-300 group-hover/item:text-white truncate">{item.title}</span>
               </div>
-              <svg className={`w-4 h-4 opacity-0 group-hover/item:opacity-100 transition-opacity ${textColors[theme]}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </button>
           ))}
         </div>
@@ -238,23 +176,22 @@ function ColloquiumCard({ group, items, onOpen, color, desc }) {
   const textStyle = color === 'indigo' ? "text-indigo-400" : "text-teal-400"
 
   return (
-    <div className={`bg-gradient-to-br ${styles} backdrop-blur-md rounded-[2.5rem] p-8 border hover:shadow-2xl transition-all duration-500 group relative overflow-hidden`}>
-      {/* Decorative Number */}
-      <div className="absolute -right-6 -top-6 text-[150px] font-black text-white/5 leading-none select-none z-0">
+    <div className={`bg-gradient-to-br ${styles} backdrop-blur-md rounded-[2rem] p-6 md:p-8 border hover:shadow-2xl transition-all duration-500 group relative overflow-hidden`}>
+      <div className="absolute -right-6 -top-6 text-[120px] md:text-[150px] font-black text-white/5 leading-none select-none z-0">
         {group.split(' ')[1]}
       </div>
 
       <div className="relative z-10">
         <div className="mb-8">
           <p className={`text-xs font-black uppercase tracking-[0.3em] ${textStyle} mb-2`}>{desc}</p>
-          <h2 className="text-4xl font-black text-white tracking-tighter">{group}</h2>
+          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{group}</h2>
         </div>
 
         {items?.length > 0 ? (
           <ul className="space-y-4">
             {items.map((item, i) => (
               <li key={i} onClick={() => onOpen(item.file)} className="cursor-pointer">
-                <div className="bg-slate-950/40 p-5 rounded-2xl border border-white/5 hover:bg-slate-900 hover:border-white/20 transition-all flex justify-between items-center group/btn">
+                <div className="bg-slate-950/40 p-5 rounded-2xl border border-white/5 hover:bg-slate-900 hover:border-white/20 active:scale-[0.98] transition-all flex justify-between items-center group/btn">
                   <div>
                     <p className="font-bold text-slate-100 text-sm group-hover/btn:text-white mb-1">{item.title}</p>
                     {item.student && <p className={`text-[10px] font-bold uppercase tracking-wider ${textStyle}`}>{item.student}</p>}
