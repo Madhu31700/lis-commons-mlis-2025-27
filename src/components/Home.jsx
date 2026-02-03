@@ -8,12 +8,12 @@ const PLACEMENT_EMAILS = [
 ]
 
 export default function Home({
-  openFirstYear,
-  openSecondYear,
-  openUgcNet,
+  openBatch, 
+  openGovtExams,
   openUpskilling,
   openInternshipForm,
   openDashboard,
+  openSyllabus, 
   visitCount
 }) {
   const quote = getQuoteOfTheDay()
@@ -27,43 +27,69 @@ export default function Home({
       <main className="max-w-6xl mx-auto px-6 py-12 md:py-20 animate-fade-in">
         
         {/* Quote */}
-        <div className="mb-16 md:mb-24 max-w-3xl">
+        <div className="mb-12 md:mb-16 max-w-3xl">
           <p className="text-lg md:text-xl italic text-slate-300 mb-3 leading-relaxed">
             “{quote.text}”
           </p>
           <p className="text-sm text-slate-400">— {quote.author}</p>
         </div>
 
+        {/* --- SYLLABUS BANNER --- */}
+        <div 
+          onClick={openSyllabus}
+          className="relative group cursor-pointer mb-20 overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10 border border-amber-500/20 hover:border-amber-500/50 transition-all"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+            <svg className="w-32 h-32 text-amber-500 transform rotate-12 translate-x-8 -translate-y-8" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          </div>
+          <div className="p-8 md:p-10 relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-amber-500 text-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest">Official</span>
+                <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Curriculum</span>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Download MLIS Syllabus</h3>
+              <p className="text-slate-400 text-sm max-w-xl">Complete breakdown of credits, courses, and exam patterns for the academic sessions.</p>
+            </div>
+            <div className="flex items-center gap-2 bg-amber-500 text-black px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest group-hover:bg-amber-400 group-hover:scale-105 transition-all shadow-lg shadow-amber-500/20">
+              <span>View PDF</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </div>
+          </div>
+        </div>
+
         {/* Section heading */}
         <h2 className="text-2xl md:text-3xl font-semibold mb-12 text-slate-100 tracking-tight">
-          Academic Repository
+          Select Your Batch
           <span className="block mt-3 h-[2px] w-20 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full"></span>
         </h2>
 
-        {/* UNIFORM REPOSITORY GRID */}
+        {/* GRID: BATCHES + EXAMS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-20">
           
+          {/* 1. SENIOR BATCH (2024-26) - MOVED TO FIRST POSITION */}
           <RepositoryCard 
-            title="First Year" 
-            subtitle="Semester I & II"
-            desc="Core LIS Foundations & assignments" 
-            onClick={openFirstYear} 
-            gradient="from-indigo-900/80 via-slate-800 to-slate-900" 
+            title="MLIS 2024-26" 
+            subtitle="Senior Cohort"
+            desc="First Year & Second Year Resources" 
+            onClick={() => openBatch("2024-26")} 
+            gradient="from-cyan-900/80 via-slate-800 to-slate-900" 
           />
-          
+
+          {/* 2. JUNIOR BATCH (2025-27) - MOVED TO SECOND POSITION */}
           <RepositoryCard 
-            title="Second Year" 
-            subtitle="Semester III & IV"
-            desc="Advanced Research & Specializations" 
-            onClick={openSecondYear} 
-            gradient="from-teal-900/80 via-slate-800 to-slate-900" 
+            title="MLIS 2025-27" 
+            subtitle="Junior Cohort"
+            desc="First Year & Second Year Resources" 
+            onClick={() => openBatch("2025-27")} 
+            gradient="from-indigo-900/80 via-slate-800 to-slate-900" 
           />
 
           <RepositoryCard 
-            title="UGC NET" 
-            subtitle="JRF Preparation"
-            desc="Paper 1 (General) & Paper 2 (LIS)" 
-            onClick={openUgcNet} 
+            title="Govt. Exams" 
+            subtitle="UGC NET • KVS • NVS"
+            desc="Prep materials for Competitive Exams" 
+            onClick={openGovtExams} 
             gradient="from-rose-900/80 via-slate-800 to-slate-900" 
           />
 
@@ -83,7 +109,7 @@ export default function Home({
           
           <h3 className="text-xl md:text-2xl font-semibold mb-4 text-slate-100 px-4">Internship & Placement Coordination</h3>
           <p className="text-slate-400 mb-10 max-w-2xl mx-auto px-6 text-sm md:text-base">
-            Official portal for MLIS 2025–2027 students to manage their placement profiles.
+            Official portal for MLIS students to manage their placement profiles.
           </p>
 
           <button
@@ -110,7 +136,7 @@ export default function Home({
   )
 }
 
-/* --- REUSABLE CARD COMPONENT (Mobile Optimized) --- */
+/* --- REUSABLE CARD COMPONENT --- */
 function RepositoryCard({ title, subtitle, desc, onClick, gradient }) {
   return (
     <div
@@ -120,10 +146,10 @@ function RepositoryCard({ title, subtitle, desc, onClick, gradient }) {
         bg-gradient-to-br ${gradient}
         border border-white/5
         rounded-[2rem]
-        p-6 md:p-10   /* <--- Smaller padding on mobile */
+        p-6 md:p-10
         transition-all
         duration-300
-        active:scale-95 /* <--- Click effect for touch screens */
+        active:scale-95
         hover:scale-[1.02]
         hover:shadow-2xl hover:shadow-indigo-500/10
         hover:border-white/10
@@ -138,7 +164,6 @@ function RepositoryCard({ title, subtitle, desc, onClick, gradient }) {
         <p className="text-slate-400 leading-relaxed text-sm">{desc}</p>
       </div>
       
-      {/* Decorative Circle Background */}
       <div className="absolute -bottom-10 -right-10 w-32 h-32 md:w-40 md:h-40 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all"></div>
     </div>
   )
