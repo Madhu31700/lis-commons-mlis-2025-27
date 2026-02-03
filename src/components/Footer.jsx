@@ -39,7 +39,7 @@ export default function Footer({ visitCount }) {
             </div>
           </div>
 
-          {/* COLUMN 2: PROJECT CREDITS (Updated) */}
+          {/* COLUMN 2: PROJECT CREDITS (Updated with LinkedIn) */}
           <div className="md:col-span-4 space-y-4">
             <h3 className="text-white font-bold text-sm uppercase tracking-widest border-b border-white/5 pb-2 inline-block">
               Project Credits
@@ -50,10 +50,20 @@ export default function Footer({ visitCount }) {
                 <div>
                   <p className="text-slate-200 text-sm font-bold">
                     Concept & Development by <br />
-                    {/* --- HIGHLIGHTED NAME --- */}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-400 to-teal-400 font-black tracking-wide text-base">
-                      MADHU M
-                    </span>
+                    
+                    {/* --- LINKEDIN LINK ADDED HERE --- */}
+                    <a 
+                      href="https://www.linkedin.com/in/madhu-m01" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1 hover:opacity-80 transition-opacity cursor-pointer group"
+                      title="Visit LinkedIn Profile"
+                    >
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-400 to-teal-400 font-black tracking-wide text-base group-hover:from-indigo-300 group-hover:to-teal-300">
+                        MADHU M ↗
+                      </span>
+                    </a>
+
                   </p>
                   <p className="text-slate-500 text-xs mt-1">Curated, Managed & Deployed</p>
                 </div>
@@ -68,7 +78,7 @@ export default function Footer({ visitCount }) {
             </ul>
           </div>
 
-          {/* COLUMN 3: ACKNOWLEDGEMENT (Disclaimer Removed) */}
+          {/* COLUMN 3: ACKNOWLEDGEMENT */}
           <div className="md:col-span-3 space-y-4">
             <h3 className="text-white font-bold text-sm uppercase tracking-widest border-b border-white/5 pb-2 inline-block">
               Acknowledgement
