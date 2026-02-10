@@ -17,7 +17,10 @@ body {
   color: #e5e7eb;
   letter-spacing: -0.01em;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevents scrollbar on animations */
 }
+
+/* --- FADE IN ANIMATION --- */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -31,4 +34,67 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 1.2s ease-out forwards;
+}
+
+/* --- FLOATING CARD ANIMATIONS --- */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Utility Classes for Floating */
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 5s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 4s ease-in-out infinite;
+}
+
+/* --- 3D PERSPECTIVE (For the card container) --- */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* --- SCROLLBAR STYLING --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; 
+}
+
+/* --- NEW: TEXT SHIMMER ANIMATION (For Landing Page Headlines) --- */
+@keyframes text-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.animate-text-shimmer {
+  background-size: 200% auto;
+  animation: text-shimmer 3s linear infinite;
 }

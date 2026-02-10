@@ -3,7 +3,6 @@ import { db } from "../firebase"
 import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore"
 
 export default function AdminPanel({ goBack }) {
-  // --- STATE VARIABLES (Must be at the top) ---
   const [email, setEmail] = useState("")
   const [role, setRole] = useState("student")
   const [users, setUsers] = useState([])
@@ -65,18 +64,18 @@ export default function AdminPanel({ goBack }) {
   const roles = ["student", "admin", "faculty", "Research Fellow", "Alumni", "Project Personnel"]
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12 font-sans">
-      <button onClick={goBack} className="text-slate-500 hover:text-white mb-8 flex items-center gap-2">
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-12 font-sans">
+      <button onClick={goBack} className="text-slate-500 hover:text-white mb-6 md:mb-8 flex items-center gap-2 text-sm md:text-base">
         ← Back to Admin Hub
       </button>
       
-      <h1 className="text-3xl font-black mb-8 uppercase tracking-widest text-indigo-500">User Access Control</h1>
+      <h1 className="text-2xl md:text-3xl font-black mb-6 md:mb-8 uppercase tracking-widest text-indigo-500">User Access Control</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         
-        {/* LEFT: ADD USER FORM (4 Columns) */}
-        <div className="lg:col-span-4 h-fit bg-slate-900/50 p-8 rounded-3xl border border-slate-800 sticky top-8">
-          <h2 className="text-xl font-bold mb-6 text-white">Whitelist User</h2>
+        {/* LEFT: ADD USER FORM (Mobile: Normal, Desktop: Sticky) */}
+        <div className="lg:col-span-4 h-fit bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-slate-800 lg:sticky lg:top-8">
+          <h2 className="text-xl font-bold mb-4 md:mb-6 text-white">Whitelist User</h2>
           <form onSubmit={handleAdd} className="space-y-4">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
@@ -85,7 +84,7 @@ export default function AdminPanel({ goBack }) {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="user@example.com" 
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 mt-2 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 md:p-4 mt-2 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
               />
             </div>
             
@@ -94,7 +93,7 @@ export default function AdminPanel({ goBack }) {
                <select 
                  value={role}
                  onChange={e => setRole(e.target.value)}
-                 className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 mt-2 outline-none appearance-none cursor-pointer"
+                 className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 md:p-4 mt-2 outline-none appearance-none cursor-pointer text-sm"
                >
                  {roles.map(r => <option key={r} value={r}>{r}</option>)}
                </select>
@@ -102,18 +101,18 @@ export default function AdminPanel({ goBack }) {
 
             <button 
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-bold uppercase tracking-widest mt-4 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 md:py-4 rounded-xl font-bold uppercase tracking-widest mt-4 transition-all shadow-lg active:scale-95 disabled:opacity-50 text-xs md:text-sm"
             >
               {loading ? "Adding..." : "Grant Access"}
             </button>
           </form>
         </div>
 
-        {/* RIGHT: USER LIST + SEARCH (8 Columns) */}
-        <div className="lg:col-span-8 bg-slate-900/50 p-8 rounded-3xl border border-slate-800 flex flex-col h-[80vh]">
+        {/* RIGHT: USER LIST + SEARCH */}
+        <div className="lg:col-span-8 bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col h-[600px] md:h-[80vh]">
           
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h2 className="text-xl font-bold">Authorized Users ({users.length})</h2>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-lg md:text-xl font-bold">Authorized Users ({users.length})</h2>
             
             {/* SEARCH BAR */}
             <div className="relative w-full md:w-64">
@@ -134,7 +133,7 @@ export default function AdminPanel({ goBack }) {
               <button
                 key={r}
                 onClick={() => setFilterRole(r)}
-                className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full transition-colors ${
+                className={`px-3 py-1 text-[10px] md:text-xs font-bold uppercase rounded-full transition-colors ${
                   filterRole === r 
                   ? "bg-indigo-500 text-white" 
                   : "bg-slate-800 text-slate-400 hover:text-white"
@@ -151,9 +150,9 @@ export default function AdminPanel({ goBack }) {
                <p className="text-slate-500 text-center py-10">No users found.</p>
             ) : (
               filteredUsers.map(u => (
-                <div key={u.email} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-white/5 hover:bg-slate-800 transition-colors group">
+                <div key={u.email} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-white/5 hover:bg-slate-800 transition-colors group gap-3">
                   <div>
-                    <p className="font-bold text-sm text-slate-200">{u.email}</p>
+                    <p className="font-bold text-sm text-slate-200 break-all">{u.email}</p>
                     <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded inline-block mt-1 ${
                       u.role === 'admin' ? 'bg-indigo-500/20 text-indigo-400' : 
                       u.role === 'faculty' ? 'bg-rose-500/20 text-rose-400' :
@@ -164,10 +163,10 @@ export default function AdminPanel({ goBack }) {
                   </div>
                   <button 
                     onClick={() => handleDelete(u.email)}
-                    className="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                    className="w-full sm:w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100"
                     title="Revoke Access"
                   >
-                    ✕
+                    <span className="sm:hidden text-xs font-bold mr-2">REMOVE</span> ✕
                   </button>
                 </div>
               ))
