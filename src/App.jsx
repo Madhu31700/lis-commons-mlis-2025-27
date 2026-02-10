@@ -10,7 +10,10 @@ import Paper from "./components/Paper"
 import InternshipForm from "./components/InternshipForm"
 import PlacementDashboard from "./components/PlacementDashboard"
 import FeedbackDashboard from "./components/FeedbackDashboard"
+import AdminHub from "./components/AdminHub"   // <--- NEW
+import AdminPanel from "./components/AdminPanel" // <--- UPDATED
 import Auth from "./components/Auth"
+import Landing from "./components/Landing" 
 import { useAuth } from "./context/AuthContext"
 
 export default function App() {
@@ -29,7 +32,6 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [visitCount, setVisitCount] = useState(0)
 
-  /* --- GLOBAL BACK BUTTON LOGIC --- */
   const changeView = (newView) => {
     setView(newView)
     window.history.pushState({ view: newView }, "", `?view=${newView}`)
@@ -63,34 +65,50 @@ export default function App() {
       })
   }, [])
 
+  /* --- GATEKEEPER --- */
+  if (!user) {
+    return (
+      <>
+        <Landing onLogin={() => setShowAuth(true)} />
+        {showAuth && <Auth onClose={() => setShowAuth(false)} />}
+      </>
+    )
+  }
+
+  /* --- NAVIGATION HANDLERS --- */
   const handleGoHome = () => {
     setSelectedBatch(null); setYear(null); setSemester(null); setPaper(null);
     changeView("home")
   }
+  
+  const handleGoToAdminHub = () => changeView("dashboard") // Back to Main Admin Menu
 
   const openSyllabus = () => {
     window.open("https://www.isibang.ac.in/~adean/infsys/acadata/Brochures/mslis_new.pdf", "_blank")
   }
 
-  /* --- RENDER LOGIC --- */
+  /* --- ROUTER --- */
   let content = null
 
+  // 1. MAIN ADMIN HUB
   if (view === "dashboard") {
-    content = <PlacementDashboard goBack={handleGoHome} />
+    content = <AdminHub changeView={changeView} goBack={handleGoHome} />
+
+  // 2. ADMIN SUB-PAGES
+  } else if (view === "admin-users") {
+    content = <AdminPanel goBack={handleGoToAdminHub} /> // Back to Hub, not Home
+
+  } else if (view === "admin-placement") {
+    content = <PlacementDashboard goBack={handleGoToAdminHub} />
+
+  } else if (view === "admin-feedback") {
+    content = <FeedbackDashboard goBack={handleGoToAdminHub} />
+
   } else if (view === "internship") {
     content = <InternshipForm goBack={handleGoHome} />
   
-  } else if (view === "admin-feedback") {
-    content = <FeedbackDashboard goBack={handleGoHome} />
-
   } else if (view === "paper") {
-    const handlePaperBack = () => {
-      if (selectedBatch === "2024-26") {
-        changeView("batch-selection")
-      } else {
-        changeView("semester")
-      }
-    }
+    const handlePaperBack = () => selectedBatch === "2024-26" ? changeView("batch-selection") : changeView("semester")
     content = <Paper paper={paper} batch={selectedBatch} goBack={handlePaperBack} />
 
   } else if (view === "semester") {
@@ -99,8 +117,9 @@ export default function App() {
     content = <Year year={year} openSemester={(s) => { setSemester(s); changeView("semester") }} goBack={() => changeView("batch-selection")} />
   
   } else if (view === "batch-selection") {
-    if (selectedBatch === "2024-26") {
-      /* === SENIOR BATCH VIEW === */
+    // ... [KEEP YOUR BATCH SELECTION CODE EXACTLY AS IT WAS] ...
+    // (I am abbreviating it here to save space, but DO NOT DELETE the Senior/Junior logic)
+     if (selectedBatch === "2024-26") {
       content = (
         <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100 min-h-screen">
           <button onClick={handleGoHome} className="text-cyan-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</button>
@@ -126,7 +145,6 @@ export default function App() {
         </div>
       )
     } else {
-      /* === JUNIOR BATCH VIEW === */
       content = (
         <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100 min-h-screen">
           <button onClick={handleGoHome} className="text-indigo-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</button>
@@ -181,6 +199,7 @@ export default function App() {
       </div>
     )
   } else {
+    // HOME VIEW
     content = (
       <Home 
         visitCount={visitCount} 
@@ -199,7 +218,6 @@ export default function App() {
     <>
       <Header goHome={handleGoHome} openDashboard={() => changeView("dashboard")} onLogin={() => setShowAuth(true)} />
       
-      {/* Intro removed. Direct rendering. */}
       <div className="flex flex-col min-h-screen">
         <div className="flex-grow">{content}</div>
         <Footer visitCount={visitCount} />
