@@ -10,6 +10,7 @@ import Semester from "./components/Semester"
 import Paper from "./components/Paper"
 import InternshipForm from "./components/InternshipForm"
 import PlacementDashboard from "./components/PlacementDashboard"
+import FeedbackDashboard from "./components/FeedbackDashboard" // <--- NEW IMPORT
 import Auth from "./components/Auth"
 import { useAuth } from "./context/AuthContext"
 
@@ -86,10 +87,11 @@ export default function App() {
   } else if (view === "internship") {
     content = <InternshipForm goBack={handleGoHome} />
   
+  // --- NEW ADMIN FEEDBACK ROUTE ---
+  } else if (view === "admin-feedback") {
+    content = <FeedbackDashboard goBack={handleGoHome} />
+
   } else if (view === "paper") {
-    // SMART NAVIGATION:
-    // If Senior Batch, Back button goes to 'batch-selection' (Dash).
-    // If Junior Batch, Back button goes to 'semester' (Standard flow).
     const handlePaperBack = () => {
       if (selectedBatch === "2024-26") {
         changeView("batch-selection")
@@ -105,88 +107,48 @@ export default function App() {
     content = <Year year={year} openSemester={(s) => { setSemester(s); changeView("semester") }} goBack={() => changeView("batch-selection")} />
   
   } else if (view === "batch-selection") {
-    // --- SPLIT LOGIC BASED ON BATCH ---
     if (selectedBatch === "2024-26") {
-      /* === SENIOR BATCH VIEW (Direct Access) === */
+      /* === SENIOR BATCH VIEW === */
       content = (
         <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100 min-h-screen">
-          <button onClick={handleGoHome} className="text-cyan-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
-             ← Back to Home
-          </button>
-          
+          <button onClick={handleGoHome} className="text-cyan-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</button>
           <div className="mb-12">
-             <div className="flex items-center gap-3 mb-2">
-                <span className="bg-cyan-900 text-cyan-200 text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest border border-cyan-700">Senior Cohort</span>
-             </div>
+             <div className="flex items-center gap-3 mb-2"><span className="bg-cyan-900 text-cyan-200 text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest border border-cyan-700">Senior Cohort</span></div>
              <h2 className="text-4xl font-black mb-4">Research & Projects</h2>
              <p className="text-slate-400">Manage your Colloquiums, Seminars, and Dissertations.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             {/* P10: Colloquium */}
-             <div 
-                onClick={() => { setPaper("Paper 10 – Colloquium and Study of Subject"); changeView("paper") }}
-                className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-cyan-500 cursor-pointer transition-all hover:scale-[1.02] group"
-             >
-                <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
-                  <span className="font-bold text-lg">C</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Colloquium</h3>
-                <p className="text-slate-400 text-sm">Paper 10 Presentations</p>
+             <div onClick={() => { setPaper("Paper 10 – Colloquium and Study of Subject"); changeView("paper") }} className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-cyan-500 cursor-pointer transition-all hover:scale-[1.02] group">
+                <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors"><span className="font-bold text-lg">C</span></div>
+                <h3 className="text-xl font-bold mb-2">Colloquium</h3><p className="text-slate-400 text-sm">Paper 10 Presentations</p>
              </div>
-
-             {/* P15: Seminar */}
-             <div 
-                onClick={() => { setPaper("Paper 15 – Seminar"); changeView("paper") }}
-                className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-violet-500 cursor-pointer transition-all hover:scale-[1.02] group"
-             >
-                <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mb-6 text-violet-400 group-hover:bg-violet-500 group-hover:text-white transition-colors">
-                  <span className="font-bold text-lg">S</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Seminar</h3>
-                <p className="text-slate-400 text-sm">Paper 15 Showcases</p>
+             <div onClick={() => { setPaper("Paper 15 – Seminar"); changeView("paper") }} className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-violet-500 cursor-pointer transition-all hover:scale-[1.02] group">
+                <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mb-6 text-violet-400 group-hover:bg-violet-500 group-hover:text-white transition-colors"><span className="font-bold text-lg">S</span></div>
+                <h3 className="text-xl font-bold mb-2">Seminar</h3><p className="text-slate-400 text-sm">Paper 15 Showcases</p>
              </div>
-
-             {/* P20: Dissertation */}
-             <div 
-                onClick={() => { setPaper("Paper 20 – Dissertation"); changeView("paper") }}
-                className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-rose-500 cursor-pointer transition-all hover:scale-[1.02] group"
-             >
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-6 text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                  <span className="font-bold text-lg">D</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Dissertation</h3>
-                <p className="text-slate-400 text-sm">Paper 20 Theses</p>
+             <div onClick={() => { setPaper("Paper 20 – Dissertation"); changeView("paper") }} className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 hover:border-rose-500 cursor-pointer transition-all hover:scale-[1.02] group">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-6 text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors"><span className="font-bold text-lg">D</span></div>
+                <h3 className="text-xl font-bold mb-2">Dissertation</h3><p className="text-slate-400 text-sm">Paper 20 Theses</p>
              </div>
           </div>
         </div>
       )
     } else {
-      /* === JUNIOR BATCH VIEW (Standard Flow) === */
+      /* === JUNIOR BATCH VIEW === */
       content = (
         <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100 min-h-screen">
-          <button onClick={handleGoHome} className="text-indigo-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
-             ← Back to Home
-          </button>
-          
+          <button onClick={handleGoHome} className="text-indigo-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</button>
           <div className="mb-12">
-             <div className="flex items-center gap-3 mb-2">
-                <span className="bg-indigo-900 text-indigo-200 text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest border border-indigo-700">Junior Cohort</span>
-             </div>
+             <div className="flex items-center gap-3 mb-2"><span className="bg-indigo-900 text-indigo-200 text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest border border-indigo-700">Junior Cohort</span></div>
              <h2 className="text-4xl font-black mb-4">Academic Years</h2>
              <p className="text-slate-400">Select your current semester year.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
              <div onClick={() => { setYear("First Year"); changeView("year") }} className="bg-gradient-to-br from-indigo-900/50 to-slate-900 p-10 rounded-3xl border border-white/5 hover:border-indigo-500 cursor-pointer transition-all hover:scale-[1.02] group">
-                <h3 className="text-3xl font-bold mb-2">First Year</h3>
-                <p className="text-slate-400 text-sm mb-6">Semester I & II</p>
-                <span className="text-xs font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest group-hover:bg-indigo-600 group-hover:text-white transition-colors">Explore →</span>
+                <h3 className="text-3xl font-bold mb-2">First Year</h3><p className="text-slate-400 text-sm mb-6">Semester I & II</p><span className="text-xs font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest group-hover:bg-indigo-600 group-hover:text-white transition-colors">Explore →</span>
              </div>
              <div onClick={() => { setYear("Second Year"); changeView("year") }} className="bg-gradient-to-br from-teal-900/50 to-slate-900 p-10 rounded-3xl border border-white/5 hover:border-teal-500 cursor-pointer transition-all hover:scale-[1.02] group">
-                <h3 className="text-3xl font-bold mb-2">Second Year</h3>
-                <p className="text-slate-400 text-sm mb-6">Semester III & IV</p>
-                <span className="text-xs font-bold bg-teal-500/10 text-teal-400 px-3 py-1 rounded-full uppercase tracking-widest group-hover:bg-teal-600 group-hover:text-white transition-colors">Explore →</span>
+                <h3 className="text-3xl font-bold mb-2">Second Year</h3><p className="text-slate-400 text-sm mb-6">Semester III & IV</p><span className="text-xs font-bold bg-teal-500/10 text-teal-400 px-3 py-1 rounded-full uppercase tracking-widest group-hover:bg-teal-600 group-hover:text-white transition-colors">Explore →</span>
              </div>
           </div>
         </div>
@@ -194,7 +156,6 @@ export default function App() {
     }
 
   } else if (view === "govt-exams") {
-    // ... (Your Existing Govt Exams Code) ...
     content = (
       <div className="max-w-6xl mx-auto px-6 py-28 text-slate-100 min-h-screen">
         <button onClick={handleGoHome} className="text-indigo-400 mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</button>
@@ -208,7 +169,7 @@ export default function App() {
                 <p className="text-slate-400 text-sm mb-6 leading-relaxed">Teaching Aptitude, Research Methodology, Comprehension, Reasoning, and ICT.</p>
                 <span className="text-xs font-bold bg-indigo-500/10 text-indigo-400 px-4 py-2 rounded-full uppercase tracking-widest group-hover:bg-indigo-600 group-hover:text-white transition-colors">Open Drive Folder →</span>
              </div>
-             <div onClick={() => window.open("YOUR_DRIVE_LINK_FOR_LIS_PAPER", "_blank")} className="bg-slate-900/50 p-10 rounded-3xl border border-white/5 hover:border-teal-500 cursor-pointer transition-all hover:scale-[1.02] group">
+             <div onClick={() => window.open("#", "_blank")} className="bg-slate-900/50 p-10 rounded-3xl border border-white/5 hover:border-teal-500 cursor-pointer transition-all hover:scale-[1.02] group">
                 <div className="w-12 h-12 rounded-full bg-teal-500/20 flex items-center justify-center mb-6 text-teal-400 group-hover:bg-teal-500 group-hover:text-white transition-colors"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
                 <h3 className="text-2xl font-bold mb-2">LIS Subject (Paper 2)</h3>
                 <p className="text-slate-400 text-sm mb-6 leading-relaxed">Library Science Core, Knowledge Organization, Digital Libraries, and Management.</p>
@@ -228,7 +189,18 @@ export default function App() {
       </div>
     )
   } else {
-    content = <Home visitCount={visitCount} openBatch={(batchName) => { setSelectedBatch(batchName); changeView("batch-selection") }} openGovtExams={() => changeView("govt-exams")} openUpskilling={() => changeView("upskilling")} openInternshipForm={() => { !user ? setShowAuth(true) : changeView("internship") }} openDashboard={() => changeView("dashboard")} openSyllabus={openSyllabus} />
+    content = (
+      <Home 
+        visitCount={visitCount} 
+        openBatch={(batchName) => { setSelectedBatch(batchName); changeView("batch-selection") }} 
+        openGovtExams={() => changeView("govt-exams")} 
+        openUpskilling={() => changeView("upskilling")} 
+        openInternshipForm={() => { !user ? setShowAuth(true) : changeView("internship") }} 
+        openDashboard={() => changeView("dashboard")} 
+        openAdminFeedback={() => changeView("admin-feedback")} // <--- Prop Passed Here
+        openSyllabus={openSyllabus} 
+      />
+    )
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore"; // Added delete imports
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import * as XLSX from "xlsx";
@@ -35,6 +35,17 @@ export default function PlacementDashboard({ goBack }) {
       e.tools?.some(t => t.toLowerCase().includes(searchTerm))
     );
   });
+
+  /* ---------- DELETE LOGIC (NEW) ---------- */
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to permanently delete this candidate profile? This action cannot be undone.")) {
+      try {
+        await deleteDoc(doc(db, "internships", id));
+      } catch (err) {
+        alert("Error deleting profile: " + err.message);
+      }
+    }
+  };
 
   /* ---------- EXCEL EXPORT ---------- */
   const exportToExcel = () => {
@@ -112,7 +123,20 @@ export default function PlacementDashboard({ goBack }) {
         <div className="space-y-8">
           {filteredEntries.length > 0 ? (
             filteredEntries.map((e) => (
-              <div key={e.id} className="bg-[#0f172a]/30 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 group">
+              <div key={e.id} className="relative bg-[#0f172a]/30 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 group">
+                
+                {/* --- ADMIN DELETE BUTTON (Top Right) --- */}
+                <button 
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDelete(e.id);
+                  }}
+                  className="absolute top-6 right-6 z-10 p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  title="Delete Profile"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+
                 <div className="flex flex-col lg:flex-row">
                   
                   {/* LEFT: IDENTITY COLUMN */}

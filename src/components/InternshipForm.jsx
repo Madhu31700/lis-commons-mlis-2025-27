@@ -57,19 +57,38 @@ export default function InternshipForm({ goBack }) {
     }))
   }
 
-  /* ---------- UPLOADS ---------- */
+  /* ---------- UPLOADS (DEBUG VERSION) ---------- */
   const uploadPhoto = async (file) => {
     if (!file || !user) return
     try {
       setUploadingPhoto(true)
       const fileName = `${user.email}.jpg`
-      const { error } = await supabase.storage.from("profile-photos").upload(fileName, file, { upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(fileName)
+      
+      console.log("Starting upload to Supabase bucket: profile-photos")
+
+      // Upload to Supabase
+      const { data: uploadData, error } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, file, { upsert: true })
+      
+      if (error) {
+        console.error("Supabase Upload Error:", error)
+        throw error // Triggers the catch block
+      }
+      
+      // Get Public URL
+      const { data: urlData } = supabase.storage
+        .from("profile-photos")
+        .getPublicUrl(fileName)
+
+      console.log("Upload success, URL:", urlData.publicUrl)
       setData((d) => ({ ...d, cvPhoto: `${urlData.publicUrl}?t=${Date.now()}` }))
+      
     } catch (err) {
-      alert("Photo upload failed.")
-    } finally { setUploadingPhoto(false) }
+      alert(`Photo Error: ${err.message || "Unknown error. Check console."}`)
+    } finally { 
+      setUploadingPhoto(false) 
+    }
   }
 
   const uploadCV = async (file) => {
@@ -77,25 +96,43 @@ export default function InternshipForm({ goBack }) {
     try {
       setUploadingCV(true)
       const fileName = `${user.email}.pdf`
-      const { error } = await supabase.storage.from("cv-files").upload(fileName, file, { upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from("cv-files").getPublicUrl(fileName)
+      
+      const { error } = await supabase.storage
+        .from("cv-files")
+        .upload(fileName, file, { upsert: true })
+      
+      if (error) {
+        console.error("Supabase CV Error:", error)
+        throw error
+      }
+      
+      const { data: urlData } = supabase.storage
+        .from("cv-files")
+        .getPublicUrl(fileName)
+
       setData((d) => ({ ...d, cvLink: urlData.publicUrl }))
+      
     } catch (err) {
-      alert("CV upload failed.")
-    } finally { setUploadingCV(false) }
+      alert(`CV Error: ${err.message || "Unknown error."}`)
+    } finally { 
+      setUploadingCV(false) 
+    }
   }
 
   /* ---------- SUBMIT ---------- */
   const submit = async () => {
     if (!data.consent) return alert("Consent is mandatory")
-    await setDoc(doc(db, "internships", user.email), {
-      ...data,
-      email: user.email,
-      updatedAt: serverTimestamp(),
-    })
-    setStatus("Profile updated successfully!")
-    setTimeout(() => setStatus(""), 3000)
+    try {
+      await setDoc(doc(db, "internships", user.email), {
+        ...data,
+        email: user.email,
+        updatedAt: serverTimestamp(),
+      })
+      setStatus("Profile updated successfully!")
+      setTimeout(() => setStatus(""), 3000)
+    } catch (err) {
+      alert("Save failed: " + err.message)
+    }
   }
 
   if (loading) return null
@@ -123,8 +160,12 @@ export default function InternshipForm({ goBack }) {
                 alt="Profile"
               />
               <label className="absolute -bottom-1 -right-1 bg-indigo-600 p-3 rounded-2xl cursor-pointer hover:bg-indigo-500 transition-all shadow-xl hover:scale-110 active:scale-90">
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                <input type="file" className="hidden" accept="image/*" onChange={e => uploadPhoto(e.target.files[0])} />
+                {uploadingPhoto ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                )}
+                <input type="file" className="hidden" accept="image/*" onChange={e => uploadPhoto(e.target.files[0])} disabled={uploadingPhoto} />
               </label>
             </div>
             <div className="flex-1 w-full space-y-4">
@@ -165,14 +206,14 @@ export default function InternshipForm({ goBack }) {
 
           <Section title="Expertise & Tools">
              <div className="flex flex-wrap gap-2">
-                {["Cataloguing", "Classification", "Metadata", "Digitisation", "Koha", "DSpace", "Python", "Excel", "OpenRefine"].map(s => (
-                <Pill 
-                    key={s} 
-                    label={s} 
-                    active={data.skills.includes(s) || data.tools.includes(s)} 
-                    onClick={() => toggleArray(s === "Koha" || s === "DSpace" || s === "Python" || s === "Excel" || s === "OpenRefine" ? "tools" : "skills", s)} 
-                />
-                ))}
+               {["Cataloguing", "Classification", "Metadata", "Digitisation", "Koha", "DSpace", "Python", "Excel", "OpenRefine"].map(s => (
+               <Pill 
+                   key={s} 
+                   label={s} 
+                   active={data.skills.includes(s) || data.tools.includes(s)} 
+                   onClick={() => toggleArray(s === "Koha" || s === "DSpace" || s === "Python" || s === "Excel" || s === "OpenRefine" ? "tools" : "skills", s)} 
+               />
+               ))}
              </div>
           </Section>
 
@@ -200,12 +241,12 @@ export default function InternshipForm({ goBack }) {
                </div>
                <label className="bg-white text-black hover:bg-indigo-400 hover:text-white px-8 py-3 rounded-2xl text-[10px] font-black cursor-pointer transition-all shadow-xl uppercase tracking-[0.2em]">
                  {uploadingCV ? "Syncing..." : "Upload CV"}
-                 <input type="file" className="hidden" accept=".pdf" onChange={e => uploadCV(e.target.files[0])} />
+                 <input type="file" className="hidden" accept=".pdf" onChange={e => uploadCV(e.target.files[0])} disabled={uploadingCV} />
                </label>
             </div>
           </Section>
 
-          {/* UPDATED CONSENT SECTION */}
+          {/* CONSENT SECTION */}
           <div className="bg-slate-900/50 border-2 border-dashed border-slate-800 rounded-[2.5rem] p-10 flex flex-col items-center text-center">
             <label className="flex items-start gap-4 max-w-2xl cursor-pointer group">
                <input 

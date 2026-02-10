@@ -1,15 +1,15 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+console.log("--- SUPABASE CONNECTION TEST ---")
+console.log("URL:", supabaseUrl ? "Loaded ✅" : "MISSING ❌")
+console.log("Key:", supabaseAnonKey ? "Loaded ✅" : "MISSING ❌")
 
-// 🔐 Sign in anonymously for storage access
-export const ensureSupabaseAuth = async () => {
-  const { data } = await supabase.auth.getSession()
-
-  if (!data.session) {
-    await supabase.auth.signInAnonymously()
-  }
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('CRITICAL ERROR: Supabase keys are missing. Check your .env file location.')
+  alert('CRITICAL ERROR: Database connection failed. API Keys are missing.')
 }
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
