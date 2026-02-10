@@ -3,6 +3,14 @@ import { useEffect, useState } from "react"
 export default function Footer({ visitCount }) {
   const [mounted, setMounted] = useState(false)
   
+  // --- AUTOMATIC DATE LOGIC ---
+  const today = new Date()
+  const formattedDate = today.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  })
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -39,7 +47,7 @@ export default function Footer({ visitCount }) {
             </div>
           </div>
 
-          {/* COLUMN 2: PROJECT CREDITS (Updated with LinkedIn) */}
+          {/* COLUMN 2: PROJECT CREDITS */}
           <div className="md:col-span-4 space-y-4">
             <h3 className="text-white font-bold text-sm uppercase tracking-widest border-b border-white/5 pb-2 inline-block">
               Project Credits
@@ -51,7 +59,7 @@ export default function Footer({ visitCount }) {
                   <p className="text-slate-200 text-sm font-bold">
                     Concept & Development by <br />
                     
-                    {/* --- LINKEDIN LINK ADDED HERE --- */}
+                    {/* --- LINKEDIN LINK --- */}
                     <a 
                       href="https://www.linkedin.com/in/madhu-m01" 
                       target="_blank" 
@@ -103,7 +111,8 @@ export default function Footer({ visitCount }) {
           <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
             <div className="text-right hidden sm:block">
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Updated</p>
-              <p className="text-slate-300 text-xs font-mono">Feb 1, 2026</p>
+              {/* DYNAMIC DATE HERE */}
+              <p className="text-slate-300 text-xs font-mono">{formattedDate}</p>
             </div>
 
             <div className="h-8 w-px bg-white/10 hidden md:block"></div>

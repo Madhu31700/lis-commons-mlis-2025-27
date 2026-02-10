@@ -3,14 +3,13 @@ import { doc, getDoc, updateDoc, increment, setDoc } from "firebase/firestore"
 import { db } from "./firebase"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
-import Intro from "./components/Intro"
 import Home from "./components/Home"
 import Year from "./components/Year"
 import Semester from "./components/Semester"
 import Paper from "./components/Paper"
 import InternshipForm from "./components/InternshipForm"
 import PlacementDashboard from "./components/PlacementDashboard"
-import FeedbackDashboard from "./components/FeedbackDashboard" // <--- NEW IMPORT
+import FeedbackDashboard from "./components/FeedbackDashboard"
 import Auth from "./components/Auth"
 import { useAuth } from "./context/AuthContext"
 
@@ -29,7 +28,6 @@ export default function App() {
   const [paper, setPaper] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
   const [visitCount, setVisitCount] = useState(0)
-  const [showIntro, setShowIntro] = useState(!sessionStorage.getItem("introSeen"))
 
   /* --- GLOBAL BACK BUTTON LOGIC --- */
   const changeView = (newView) => {
@@ -65,11 +63,6 @@ export default function App() {
       })
   }, [])
 
-  const finishIntro = () => {
-    sessionStorage.setItem("introSeen", "true")
-    setShowIntro(false)
-  }
-
   const handleGoHome = () => {
     setSelectedBatch(null); setYear(null); setSemester(null); setPaper(null);
     changeView("home")
@@ -87,7 +80,6 @@ export default function App() {
   } else if (view === "internship") {
     content = <InternshipForm goBack={handleGoHome} />
   
-  // --- NEW ADMIN FEEDBACK ROUTE ---
   } else if (view === "admin-feedback") {
     content = <FeedbackDashboard goBack={handleGoHome} />
 
@@ -197,7 +189,7 @@ export default function App() {
         openUpskilling={() => changeView("upskilling")} 
         openInternshipForm={() => { !user ? setShowAuth(true) : changeView("internship") }} 
         openDashboard={() => changeView("dashboard")} 
-        openAdminFeedback={() => changeView("admin-feedback")} // <--- Prop Passed Here
+        openAdminFeedback={() => changeView("admin-feedback")}
         openSyllabus={openSyllabus} 
       />
     )
@@ -206,12 +198,13 @@ export default function App() {
   return (
     <>
       <Header goHome={handleGoHome} openDashboard={() => changeView("dashboard")} onLogin={() => setShowAuth(true)} />
-      {showIntro ? <Intro onFinish={finishIntro} /> : (
-        <div className="flex flex-col min-h-screen">
-          <div className="flex-grow">{content}</div>
-          <Footer visitCount={visitCount} />
-        </div>
-      )}
+      
+      {/* Intro removed. Direct rendering. */}
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-grow">{content}</div>
+        <Footer visitCount={visitCount} />
+      </div>
+
       {showAuth && <Auth onClose={() => setShowAuth(false)} />}
     </>
   )
