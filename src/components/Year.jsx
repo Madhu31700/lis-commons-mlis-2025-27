@@ -1,96 +1,137 @@
-export default function Year({ year, openSemester, goBack }) {
-  const isFirstYear = year === "First Year"
-  
-  const semesters = isFirstYear 
-    ? [
-        { id: "Semester I", desc: "Foundations & Core Concepts", papers: "5 Papers", color: "indigo" },
-        { id: "Semester II", desc: "Management & Tech Skills", papers: "5 Papers", color: "teal" }
-      ]
-    : [
-        { id: "Semester III", desc: "Research & Analytics", papers: "5 Papers", color: "violet" },
-        { id: "Semester IV", desc: "Advanced Systems & Dissertation", papers: "5 Papers", color: "rose" }
-      ]
+// Remove useState import since we use props now
+import { useState } from "react" 
 
-  return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 px-6 py-20 flex flex-col items-center justify-center relative overflow-hidden">
-      
-      {/* Background Blobs */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-teal-600/10 rounded-full blur-[120px]"></div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-5xl">
-        <button 
-          onClick={goBack} 
-          className="mb-8 text-xs font-bold text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"
-        >
-          ← Back Home
-        </button>
-
-        <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter">
-          {year}
-        </h1>
-        <p className="text-slate-400 max-w-lg mb-16 text-lg">
-          Select your semester to access course materials, notes, and previous year question papers.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {semesters.map((sem) => (
-            <SemesterCard 
-              key={sem.id} 
-              data={sem} 
-              onClick={() => openSemester(sem.id)} 
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+const semesterData = {
+  "Semester I": [
+    "Paper 01 – Foundations of Library and Information Science",
+    "Paper 02 – Information Organisation",
+    "Paper 03 – Cataloguing and Metadata",
+    "Paper 04 – Information Sources, Systems and Services",
+    "Paper 05 – Foundations of ICT",
+  ],
+  "Semester II": [
+    "Paper 06 – Library Management and Automation",
+    "Paper 07 – Digital Libraries",
+    "Paper 08 – Knowledge Management",
+    "Paper 09 – Elements of Mathematics and Statistics",
+    "Paper 10 – Colloquium and Study of Subject",
+  ],
+  "Semester III": [
+    "Paper 11 – Information Retrieval",
+    "Paper 12 – Content Management Systems",
+    "Paper 13 – Data Management",
+    "Paper 14 – Research Methodology and Technical Writing",
+    "Paper 15 – Seminar",
+  ],
+  "Semester IV": [
+    "Paper 16 – Scientometrics and Informetrics",
+    "Paper 17 – Web Based Information Systems and Services",
+    "Paper 18 – Semantic Web",
+    "Paper 19 – Electives",
+    "Paper 20 – Dissertation",
+  ],
 }
 
-function SemesterCard({ data, onClick }) {
-  const gradients = {
-    indigo: "from-indigo-600/20 to-slate-900 border-indigo-500/30 hover:border-indigo-400",
-    teal: "from-teal-600/20 to-slate-900 border-teal-500/30 hover:border-teal-400",
-    violet: "from-violet-600/20 to-slate-900 border-violet-500/30 hover:border-violet-400",
-    rose: "from-rose-600/20 to-slate-900 border-rose-500/30 hover:border-rose-400",
-  }
+// 🔥 ACCEPT PROPS HERE
+export default function Year({ openPaper, goBack, activeTab, setActiveTab }) {
+  
+  const tabs = ["Semester I", "Semester II", "Semester III", "Semester IV"]
+  
+  // Use props instead of local state
+  const currentPapers = semesterData[activeTab] || []
 
   return (
-    <div 
-      onClick={onClick}
-      className={`
-        cursor-pointer 
-        bg-gradient-to-br ${gradients[data.color]} 
-        backdrop-blur-xl 
-        border 
-        p-10 
-        rounded-[2.5rem] 
-        group 
-        relative 
-        overflow-hidden 
-        transition-all 
-        duration-500 
-        hover:scale-[1.02] 
-        hover:shadow-2xl
-      `}
-    >
-      <div className="relative z-10">
-        <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest mb-4 text-slate-300">
-          {data.papers}
-        </span>
-        <h2 className="text-3xl font-black text-white mb-2 group-hover:text-white transition-colors">
-          {data.id}
-        </h2>
-        <p className="text-slate-400 text-sm font-medium group-hover:text-slate-200 transition-colors">
-          {data.desc}
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-indigo-500/30 pb-20">
+      
+      {/* GLOBAL BACKGROUND */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
+      <div className="fixed inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent pointer-events-none z-0"></div>
 
-      {/* Hover Arrow */}
-      <div className="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-300">
-        <svg className="w-5 h-5 -rotate-45 group-hover:rotate-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10">
+        
+        {/* --- HEADER --- */}
+        <div className="flex items-center justify-between mb-8">
+          <button 
+            onClick={goBack} 
+            className="group flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900/50 border border-white/10 hover:border-indigo-500/50 transition-all text-slate-400 hover:text-white"
+          >
+            <span className="group-hover:-translate-x-1 transition-transform">←</span>
+            <span className="text-xs font-bold uppercase tracking-widest">Back to Hub</span>
+          </button>
+          
+          <div className="hidden md:flex items-center gap-2">
+             <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+             <span className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Junior Cohort</span>
+          </div>
+        </div>
+
+        <div className="mb-8">
+           <h1 className="text-3xl md:text-5xl font-black text-white mb-2">
+             Academic <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Library</span>
+           </h1>
+           <p className="text-slate-400 text-sm">Select a semester tab to view papers.</p>
+        </div>
+
+        {/* --- TABS (STICKY TOP) --- */}
+        <div className="sticky top-4 z-50 mb-10 p-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl flex overflow-x-auto no-scrollbar gap-2 shadow-2xl">
+           {tabs.map((tab) => (
+             <button
+               key={tab}
+               onClick={() => setActiveTab(tab)} // 🔥 Updates parent state
+               className={`
+                 flex-1 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap
+                 ${activeTab === tab 
+                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 scale-[1.02]" 
+                   : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                 }
+               `}
+             >
+               {tab}
+             </button>
+           ))}
+        </div>
+
+        {/* --- PAPERS GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+           {currentPapers.map((paperStr, index) => {
+             const [codePart, titlePart] = paperStr.split(' – ')
+             const paperCode = codePart.replace('Paper ', '')
+
+             return (
+               <div 
+                 key={index}
+                 onClick={() => openPaper(paperStr)}
+                 className="
+                   group cursor-pointer relative overflow-hidden
+                   bg-slate-900/40 border border-white/5 p-6 rounded-[2rem]
+                   hover:bg-slate-900/60 hover:border-indigo-500/30 hover:scale-[1.01] 
+                   transition-all duration-300 shadow-lg
+                 "
+               >
+                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-indigo-500/20 transition-all"></div>
+
+                 <div className="relative z-10 flex flex-col justify-between h-full min-h-[160px]">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-[10px] font-black text-slate-400 bg-slate-950 px-2 py-1 rounded border border-slate-800 uppercase tracking-widest group-hover:text-indigo-400 group-hover:border-indigo-500/30 transition-colors">
+                          P-{paperCode}
+                        </span>
+                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-200 leading-snug group-hover:text-white transition-colors">
+                        {titlePart}
+                      </h3>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider group-hover:text-indigo-300">View Resources</span>
+                    </div>
+                 </div>
+               </div>
+             )
+           })}
+        </div>
       </div>
     </div>
   )
