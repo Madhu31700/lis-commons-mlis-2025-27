@@ -2,99 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Global Cinematic Academic Theme ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif;
-
-  background: linear-gradient(
-    180deg,
-    #111827 0%,
-    #1e293b 45%,
-    #0f172a 100%
-  );
-
-  color: #e5e7eb;
-  letter-spacing: -0.01em;
-  min-height: 100vh;
-  overflow-x: hidden; /* Prevents scrollbar on animations */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: #ffffff;
+  color: #0D1A16;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* --- FADE IN ANIMATION --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+::selection {
+  background: #E1F5EE;
+  color: #085041;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 1.2s ease-out forwards;
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(29,158,117,0.1);
+  border-color: rgba(29,158,117,0.3) !important;
 }
 
-/* --- FLOATING CARD ANIMATIONS --- */
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes float-medium {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-}
-
-@keyframes float-fast {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-/* Utility Classes for Floating */
-.animate-float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-.animate-float-medium {
-  animation: float-medium 5s ease-in-out infinite;
-}
-
-.animate-float-fast {
-  animation: float-fast 4s ease-in-out infinite;
-}
-
-/* --- 3D PERSPECTIVE (For the card container) --- */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-/* --- SCROLLBAR STYLING --- */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0f172a; 
-}
-
-::-webkit-scrollbar-thumb {
-  background: #334155; 
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #475569; 
-}
-
-/* --- NEW: TEXT SHIMMER ANIMATION (For Landing Page Headlines) --- */
-@keyframes text-shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-.animate-text-shimmer {
-  background-size: 200% auto;
-  animation: text-shimmer 3s linear infinite;
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #fff; }
+::-webkit-scrollbar-thumb { background: #9FE1CB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1D9E75; }
