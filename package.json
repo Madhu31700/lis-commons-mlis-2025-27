@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
     "@tailwindcss/typography": "^0.5.19",
+    "@uiw/react-md-editor": "^4.0.11",
     "easymde": "^2.20.0",
     "file-saver": "^2.0.5",
     "firebase": "^12.8.0",

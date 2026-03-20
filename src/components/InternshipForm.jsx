@@ -1,366 +1,795 @@
-import { useEffect, useState } from "react"
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
-import { db } from "../firebase"
-import { useAuth } from "../context/AuthContext"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "../supabase"
+import { useAuth } from "../context/AuthContext"
 
-export default function InternshipForm({ goBack }) {
-  const { user } = useAuth()
+const BATCHES = ["MLIS 2024-2026", "MLIS 2025-2027"]
 
-  // --- STATE & LOGIC (KEPT EXACTLY AS YOURS) ---
-  const [data, setData] = useState({
-    name: "",
-    roll: "",
-    programme: "MLIS 2025–2027",
-    phone: "",
-    linkedin: "", 
-    bio: "",      
-    availability: "", 
-    sector: [],
-    libraryType: "",
-    corporateRole: "",
-    location: "",
-    relocate: "",
-    pref1: "",
-    pref2: "",
-    pref3: "",
-    skills: [],
-    tools: [],
-    cvLink: "",
-    cvPhoto: "",
-    cvVisibility: "placement",
-    consent: false,
-  })
+const INTERNSHIP_TYPES = [
+  "Academic Library",
+  "Public Library",
+  "Special / Corporate Library",
+  "Archives & Records Management",
+  "Knowledge Management",
+  "Digital Library / Digitisation",
+  "Publishing & Editorial",
+  "Data Analytics / Bibliometrics",
+  "Information Technology",
+]
 
-  const [loading, setLoading] = useState(true)
-  const [status, setStatus] = useState("")
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
-  const [uploadingCV, setUploadingCV] = useState(false)
+const DOMAIN_OPTIONS = [
+  "Library Cataloguing & Classification",
+  "Metadata & Dublin Core",
+  "Digital Preservation",
+  "Information Retrieval",
+  "Knowledge Organisation",
+  "Bibliometrics & Scientometrics",
+  "Library Automation",
+  "Content Management",
+  "Research Support",
+  "User Services & Outreach",
+]
 
-  /* ---------- LOAD DATA ---------- */
-  useEffect(() => {
-    if (!user) return
-    const ref = doc(db, "internships", user.email)
-    getDoc(ref).then((snap) => {
-      if (snap.exists()) {
-        setData((d) => ({ ...d, ...snap.data() }))
-      }
-      setLoading(false)
-    })
-  }, [user])
+const SKILL_OPTIONS = [
+  "Cataloguing (DDC)", "MARC21 / RDA",
+  "OPAC Management", "Literature Search",
+  "Reference Services", "Collection Development",
+  "Digitisation", "Metadata Creation",
+  "Research Assistance", "Report Writing",
+]
 
-  const toggleArray = (field, value) => {
-    setData((d) => ({
-      ...d,
-      [field]: d[field].includes(value)
-        ? d[field].filter((v) => v !== value)
-        : [...d[field], value],
-    }))
-  }
+const TOOL_OPTIONS = [
+  "Koha", "DSpace", "EPrints",
+  "Zotero", "Mendeley", "EndNote",
+  "MS Excel", "MS Word", "PowerPoint",
+  "Python", "OpenRefine", "VOSviewer",
+  "Canva", "Dataverse", "INFLIBNET Tools",
+]
 
-  /* ---------- UPLOADS ---------- */
-  const uploadPhoto = async (file) => {
-    if (!file || !user) return
-    try {
-      setUploadingPhoto(true)
-      const fileName = `${user.email}.jpg`
-      
-      const { error } = await supabase.storage
-        .from("profile-photos")
-        .upload(fileName, file, { upsert: true })
-      
-      if (error) throw error
-      
-      const { data: urlData } = supabase.storage
-        .from("profile-photos")
-        .getPublicUrl(fileName)
+const LANG_OPTIONS = [
+  "English", "Hindi", "Kannada",
+  "Tamil", "Malayalam", "Telugu",
+  "Bengali", "Marathi", "Other",
+]
 
-      setData((d) => ({ ...d, cvPhoto: `${urlData.publicUrl}?t=${Date.now()}` }))
-      
-    } catch (err) {
-      alert(`Photo Error: ${err.message}`)
-    } finally { 
-      setUploadingPhoto(false) 
-    }
-  }
+const STEPS = [
+  "Personal Info",
+  "Preferences",
+  "Skills & Tools",
+  "Documents",
+  "Review & Submit",
+]
 
-  const uploadCV = async (file) => {
-    if (!file || !user) return
-    try {
-      setUploadingCV(true)
-      const fileName = `${user.email}.pdf`
-      
-      const { error } = await supabase.storage
-        .from("cv-files")
-        .upload(fileName, file, { upsert: true })
-      
-      if (error) throw error
-      
-      const { data: urlData } = supabase.storage
-        .from("cv-files")
-        .getPublicUrl(fileName)
-
-      setData((d) => ({ ...d, cvLink: urlData.publicUrl }))
-      
-    } catch (err) {
-      alert(`CV Error: ${err.message}`)
-    } finally { 
-      setUploadingCV(false) 
-    }
-  }
-
-  /* ---------- SUBMIT ---------- */
-  const submit = async () => {
-    if (!data.consent) return alert("Consent is mandatory")
-    try {
-      await setDoc(doc(db, "internships", user.email), {
-        ...data,
-        email: user.email,
-        updatedAt: serverTimestamp(),
-      })
-      setStatus("Profile Synced Successfully!")
-      setTimeout(() => setStatus(""), 3000)
-    } catch (err) {
-      alert("Save failed: " + err.message)
-    }
-  }
-
-  if (loading) return null
-
-  return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-emerald-500/30 pb-20">
-      
-      {/* ================= GLOBAL BACKGROUND ================= */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
-      <div className="fixed inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent pointer-events-none z-0"></div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-12">
-        
-        {/* --- HEADER --- */}
-        <button 
-          onClick={goBack}
-          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
-        >
-          <span className="group-hover:-translate-x-1 transition-transform">←</span>
-          <span className="text-xs font-bold uppercase tracking-widest">Back to Hub</span>
-        </button>
-
-        <div className="text-center mb-12 animate-fadeIn">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 mb-6 shadow-lg shadow-emerald-500/20">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white mb-2">
-            Placement <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Profile</span>
-          </h1>
-          <p className="text-slate-400 text-sm max-w-lg mx-auto">
-            Update your professional details. This data helps the Placement Cell match you with relevant opportunities.
-          </p>
-        </div>
-
-        <div className="space-y-8 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-          
-          {/* 1. PHOTO & BIO (Split Card - Glass Effect) */}
-          <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col md:flex-row gap-8 items-center md:items-start shadow-xl">
-            
-            {/* Photo Upload */}
-            <div className="relative group shrink-0">
-              <div className="w-36 h-36 rounded-[2rem] p-1 bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-2xl shadow-emerald-500/20">
-                 <img 
-                    src={data.cvPhoto || `https://ui-avatars.com/api/?name=${data.name}&background=020617&color=fff`} 
-                    className="w-full h-full rounded-[1.8rem] object-cover border-4 border-[#020617]" 
-                    alt="Profile"
-                 />
-              </div>
-              <label className="absolute -bottom-2 -right-2 bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl cursor-pointer transition-all shadow-lg hover:scale-110 active:scale-95 border-2 border-[#020617]">
-                {uploadingPhoto ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                )}
-                <input type="file" className="hidden" accept="image/*" onChange={e => uploadPhoto(e.target.files[0])} disabled={uploadingPhoto} />
-              </label>
-            </div>
-
-            {/* Bio & Basic Info */}
-            <div className="flex-1 w-full space-y-4">
-               <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest ml-1 mb-2 block">Professional Summary</label>
-                  <textarea 
-                    placeholder="E.g., Aspiring Data Librarian passionate about Knowledge Management..." 
-                    value={data.bio}
-                    maxLength={200}
-                    onChange={e => setData({...data, bio: e.target.value})}
-                    className="w-full bg-slate-950/50 border border-slate-700 rounded-2xl p-4 text-sm focus:border-emerald-500 focus:bg-slate-900 outline-none resize-none h-28 transition-all text-white placeholder:text-slate-600"
-                  />
-               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input label="LinkedIn URL" value={data.linkedin} onChange={v => setData({...data, linkedin: v})} placeholder="linkedin.com/in/username" />
-                  <Input label="Availability" value={data.availability} onChange={v => setData({...data, availability: v})} placeholder="e.g. May - July 2026" />
-               </div>
-            </div>
-          </div>
-
-          {/* 2. PERSONAL DETAILS */}
-          <Section title="Personal Information">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input label="Full Name" value={data.name} onChange={v => setData({...data, name: v})} />
-              <Input label="Roll Number" value={data.roll} onChange={v => setData({...data, roll: v})} />
-              <Input label="Phone Number" value={data.phone} onChange={v => setData({...data, phone: v})} />
-              <div className="opacity-50 pointer-events-none">
-                 <Input label="Programme" value={data.programme} disabled />
-              </div>
-            </div>
-          </Section>
-
-          {/* 3. SECTOR INTERESTS */}
-          <Section title="Sectoral Interests">
-            <p className="text-xs text-slate-500 mb-4 ml-1">Select areas you are interested in working:</p>
-            <div className="flex flex-wrap gap-3 mb-6">
-              {["Academic Libraries", "Public Libraries", "Corporate / KM", "Publishing", "Digital Libraries", "Archives & Museums", "Data / Analytics"].map(s => (
-                <Pill key={s} label={s} active={data.sector.includes(s)} onClick={() => toggleArray("sector", s)} />
-              ))}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input label="Specific Role Focus" value={data.corporateRole} onChange={v => setData({...data, corporateRole: v})} placeholder="e.g. Data Analyst" />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="Preferred City" value={data.location} onChange={v => setData({...data, location: v})} placeholder="e.g. Bangalore" />
-                <Select label="Relocate?" value={data.relocate} options={["Yes", "No", "Depends"]} onChange={v => setData({...data, relocate: v})} />
-              </div>
-            </div>
-          </Section>
-
-          {/* 4. SKILLS & TOOLS */}
-          <Section title="Expertise & Tools">
-             <div className="flex flex-wrap gap-2">
-               {["Cataloguing", "Classification", "Metadata", "Digitisation", "Koha", "DSpace", "Python", "Excel", "OpenRefine"].map(s => (
-                 <Pill 
-                    key={s} 
-                    label={s} 
-                    active={data.skills.includes(s) || data.tools.includes(s)} 
-                    onClick={() => toggleArray(s === "Koha" || s === "DSpace" || s === "Python" || s === "Excel" || s === "OpenRefine" ? "tools" : "skills", s)} 
-                 />
-               ))}
-             </div>
-          </Section>
-
-          {/* 5. DOCUMENTS (CV Upload) */}
-          <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
-             <div className="flex items-center gap-5">
-                <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-400 border border-red-500/20 shadow-lg shadow-red-500/10">
-                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                </div>
-                <div>
-                   <h3 className="font-bold text-white mb-1">Curriculum Vitae (PDF)</h3>
-                   {data.cvLink ? (
-                      <a href={data.cvLink} target="_blank" className="text-xs text-emerald-400 font-bold hover:underline flex items-center gap-1.5 p-1 bg-emerald-500/10 rounded-lg w-fit border border-emerald-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1"></span> Uploaded & Verified
-                      </a>
-                   ) : (
-                      <p className="text-xs text-slate-500 font-medium">No file uploaded yet</p>
-                   )}
-                </div>
-             </div>
-             
-             <label className="group relative bg-white text-black hover:bg-emerald-500 hover:text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer transition-all shadow-xl hover:scale-105 active:scale-95 overflow-hidden">
-                <span className="relative z-10 flex items-center gap-2">
-                   {uploadingCV ? "Syncing..." : "Upload PDF"} 
-                   {!uploadingCV && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>}
-                </span>
-                <input type="file" className="hidden" accept=".pdf" onChange={e => uploadCV(e.target.files[0])} disabled={uploadingCV} />
-             </label>
-          </div>
-
-          {/* 6. CONSENT & SUBMIT */}
-          <div className="border-t border-white/5 pt-8 text-center">
-            <label className="inline-flex items-start gap-4 cursor-pointer group text-left max-w-2xl mx-auto mb-8 bg-slate-900/30 p-4 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-all">
-               <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-all shrink-0 ${data.consent ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-900 border-slate-600'}`}>
-                  {data.consent && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>}
-               </div>
-               <input type="checkbox" checked={data.consent} onChange={() => setData({...data, consent: !data.consent})} className="hidden" />
-               <span className="text-xs text-slate-400 leading-relaxed group-hover:text-slate-200 transition-colors">
-                  I consent to sharing this data with the Placement Cell. I understand this info will be used for internship coordination and academic records.
-               </span>
-            </label>
-
-            <button 
-              onClick={submit} 
-              disabled={uploadingPhoto || uploadingCV}
-              className="w-full md:w-auto px-12 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-emerald-600/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sync Profile
-            </button>
-            
-            {status && (
-              <div className="mt-6 flex justify-center animate-fadeIn">
-                 <div className="inline-flex items-center gap-2 px-6 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {status}
-                 </div>
-              </div>
-            )}
-          </div>
-
-        </div>
-      </div>
+function Avatar({ url, name, size = 100 }) {
+  return url ? (
+    <img src={url} alt={name}
+      style={{ width: size, height: size, borderRadius: '50%',
+        objectFit: 'cover', border: '3px solid #1D9E75' }} />
+  ) : (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: 'linear-gradient(135deg,#1D9E75,#5DCAA5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#fff', fontSize: size * 0.4, fontWeight: '700',
+      border: '3px solid #1D9E75',
+    }}>
+      {name?.charAt(0)?.toUpperCase() || 'S'}
     </div>
   )
 }
 
-/* --- HELPER COMPONENTS (STYLED FOR GLASS LOOK) --- */
-function Section({ title, children }) {
+function FieldLabel({ children, required }) {
   return (
-    <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-sm">
-      <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-8 flex items-center gap-4">
-        {title} <div className="h-[1px] bg-white/10 flex-1"></div>
-      </h2>
+    <label style={{
+      display: 'block', fontSize: '11px', fontWeight: '700',
+      color: '#1D9E75', textTransform: 'uppercase',
+      letterSpacing: '0.1em', marginBottom: '6px',
+    }}>
       {children}
-    </div>
+      {required && <span style={{ color: '#E24B4A', marginLeft: '3px' }}>*</span>}
+    </label>
   )
 }
 
-function Input({ label, value, onChange, disabled, placeholder }) {
+function TextInput({ label, value, onChange, placeholder, required, type = 'text', disabled }) {
   return (
-    <div className="group">
-      <label className="text-[9px] uppercase font-bold text-slate-500 ml-1 mb-1.5 block tracking-widest group-focus-within:text-emerald-500 transition-colors">{label}</label>
-      <input 
-        type="text" 
-        disabled={disabled}
+    <div>
+      <FieldLabel required={required}>{label}</FieldLabel>
+      <input
+        type={type} value={value || ''} disabled={disabled}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        value={value} 
-        onChange={e => onChange(e.target.value)} 
-        className={`w-full bg-slate-950/50 border border-slate-700 rounded-xl py-3.5 px-4 text-sm outline-none focus:border-emerald-500 focus:bg-slate-900 transition-all text-white placeholder:text-slate-700 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
+        style={{
+          width: '100%', padding: '10px 14px',
+          border: '1.5px solid rgba(29,158,117,0.2)',
+          borderRadius: '10px', fontSize: '13px', outline: 'none',
+          fontFamily: "'Plus Jakarta Sans',sans-serif",
+          color: '#0D1A16', background: disabled ? '#F5F7F6' : '#fff',
+          opacity: disabled ? 0.7 : 1,
+        }}
       />
     </div>
   )
 }
 
-function Select({ label, value, options, onChange }) {
+function SelectInput({ label, value, onChange, options, required }) {
   return (
-    <div className="group">
-      <label className="text-[9px] uppercase font-bold text-slate-500 ml-1 mb-1.5 block tracking-widest group-focus-within:text-emerald-500 transition-colors">{label}</label>
-      <select 
-        value={value} 
-        onChange={e => onChange(e.target.value)} 
-        className="w-full bg-slate-950/50 border border-slate-700 rounded-xl py-3.5 px-4 text-sm outline-none focus:border-emerald-500 focus:bg-slate-900 transition-all text-white appearance-none cursor-pointer"
-      >
-        <option value="">Select</option>
+    <div>
+      <FieldLabel required={required}>{label}</FieldLabel>
+      <select value={value || ''} onChange={e => onChange(e.target.value)}
+        style={{
+          width: '100%', padding: '10px 14px',
+          border: '1.5px solid rgba(29,158,117,0.2)',
+          borderRadius: '10px', fontSize: '13px', outline: 'none',
+          fontFamily: "'Plus Jakarta Sans',sans-serif",
+          color: '#0D1A16', background: '#fff',
+        }}>
+        <option value="">Select...</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
   )
 }
 
-function Pill({ label, active, onClick }) {
+function TagPill({ label, active, onClick }) {
   return (
-    <button 
-      onClick={onClick} 
-      type="button"
-      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
-        active 
-        ? "bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/20 scale-105" 
-        : "bg-slate-950/50 border-white/5 text-slate-400 hover:border-emerald-500/50 hover:text-emerald-400"
-      }`}
-    >
-      {label}
-    </button>
+    <button type="button" onClick={onClick} style={{
+      padding: '6px 14px', borderRadius: '100px',
+      fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+      border: 'none', transition: 'all 0.15s',
+      background: active ? '#1D9E75' : 'rgba(29,158,117,0.08)',
+      color: active ? '#fff' : '#085041',
+    }}>{label}</button>
+  )
+}
+
+function SectionCard({ title, subtitle, children }) {
+  return (
+    <div style={{
+      background: '#fff',
+      border: '1.5px solid rgba(29,158,117,0.12)',
+      borderRadius: '20px', padding: 'clamp(20px,4vw,32px)',
+      marginBottom: '20px',
+    }}>
+      {title && (
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{
+            fontFamily: "'Lora',serif", fontSize: '18px',
+            fontWeight: '600', color: '#0D1A16', marginBottom: '4px',
+          }}>{title}</h3>
+          {subtitle && (
+            <p style={{ fontSize: '13px', color: '#5A7A6E' }}>{subtitle}</p>
+          )}
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
+export default function InternshipForm({ goBack }) {
+  const { user } = useAuth()
+  const photoRef = useRef()
+  const cvRef    = useRef()
+
+  const [step,        setStep]        = useState(0)
+  const [saving,      setSaving]      = useState(false)
+  const [submitted,   setSubmitted]   = useState(false)
+  const [uploading,   setUploading]   = useState({ photo: false, cv: false })
+  const [errors,      setErrors]      = useState({})
+  const [loadingData, setLoadingData] = useState(true)
+
+  const [form, setForm] = useState({
+    name:               user?.displayName || '',
+    email:              user?.email || '',
+    roll_number:        '',
+    batch:              'MLIS 2025-2027',
+    phone:              '',
+    linkedin_url:       '',
+    photo_url:          user?.photoURL || '',
+    cv_url:             '',
+    bio:                '',
+    availability_from:  '',
+    availability_to:    '',
+    preferred_location: '',
+    willing_to_relocate:'',
+    internship_type:    [],
+    preferred_domains:  [],
+    org_preference_1:   '',
+    org_preference_2:   '',
+    org_preference_3:   '',
+    skills:             [],
+    tools:              [],
+    languages:          [],
+    extra_info:         '',
+    consent:            false,
+  })
+
+  // Load existing submission
+  useEffect(() => {
+    if (!user) return
+    const load = async () => {
+      const { data } = await supabase
+        .from('internship_submissions')
+        .select('*')
+        .eq('email', user.email)
+        .maybeSingle()
+      if (data) setForm(f => ({ ...f, ...data }))
+      setLoadingData(false)
+    }
+    load()
+  }, [user])
+
+  const toggle = (field, value) => {
+    setForm(f => ({
+      ...f,
+      [field]: f[field].includes(value)
+        ? f[field].filter(v => v !== value)
+        : [...f[field], value],
+    }))
+  }
+
+  const uploadPhoto = async (file) => {
+    if (!file) return
+    setUploading(u => ({ ...u, photo: true }))
+    try {
+      const ext  = file.name.split('.').pop()
+      const path = `${user.uid}-photo.${ext}`
+      const { error } = await supabase.storage
+        .from('profile-photos')
+        .upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data } = supabase.storage.from('profile-photos').getPublicUrl(path)
+      setForm(f => ({ ...f, photo_url: data.publicUrl + '?t=' + Date.now() }))
+    } catch (e) { alert('Photo upload failed: ' + e.message) }
+    setUploading(u => ({ ...u, photo: false }))
+  }
+
+  const uploadCV = async (file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') { alert('Please upload a PDF file.'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('File too large. Max 5MB.'); return }
+    setUploading(u => ({ ...u, cv: true }))
+    try {
+      const path = `${user.uid}-cv.pdf`
+      const { error } = await supabase.storage
+        .from('cv-files')
+        .upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data } = supabase.storage.from('cv-files').getPublicUrl(path)
+      setForm(f => ({ ...f, cv_url: data.publicUrl }))
+    } catch (e) { alert('CV upload failed: ' + e.message) }
+    setUploading(u => ({ ...u, cv: false }))
+  }
+
+  const validate = () => {
+    const e = {}
+    if (!form.name.trim())        e.name = 'Required'
+    if (!form.roll_number.trim()) e.roll_number = 'Required'
+    if (!form.phone.trim())       e.phone = 'Required'
+    if (!form.consent)            e.consent = 'Required'
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const handleSubmit = async () => {
+    if (!validate()) { setStep(0); return }
+    setSaving(true)
+    try {
+      const payload = {
+        ...form,
+        user_id:      user.uid,
+        email:        user.email,
+        updated_at:   new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+      }
+      const { error } = await supabase
+        .from('internship_submissions')
+        .upsert(payload, { onConflict: 'email' })
+      if (error) throw error
+      setSubmitted(true)
+    } catch (e) { alert('Submission failed: ' + e.message) }
+    setSaving(false)
+  }
+
+  if (loadingData) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+      <p style={{ color: '#1D9E75' }}>Loading your profile...</p>
+    </div>
+  )
+
+  if (submitted) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', padding: '20px',
+      fontFamily: "'Plus Jakarta Sans',sans-serif", background: '#fff' }}>
+      <div style={{ textAlign: 'center', maxWidth: '480px' }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
+        <h2 style={{ fontFamily: "'Lora',serif", fontSize: '28px',
+          fontWeight: '600', color: '#0D1A16', marginBottom: '10px' }}>
+          Profile Submitted!
+        </h2>
+        <p style={{ fontSize: '14px', color: '#5A7A6E', lineHeight: '1.7',
+          marginBottom: '24px' }}>
+          Your internship profile has been submitted to the DRTC Placement Cell.
+          They'll review it and reach out with opportunities matching your preferences.
+        </p>
+        <button onClick={goBack} style={{
+          background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+          color: '#fff', border: 'none', borderRadius: '100px',
+          padding: '12px 28px', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+        }}>← Back to Hub</button>
+      </div>
+    </div>
+  )
+
+  const inp = { ...form }
+
+  return (
+    <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#F5F7F6', minHeight: '100vh' }}>
+
+      {/* ── HEADER ── */}
+      <div style={{
+        background: 'linear-gradient(160deg,#0D1A16,#1A302A)',
+        padding: 'clamp(28px,4vw,40px) clamp(16px,4vw,32px)',
+      }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <button onClick={goBack} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.5)', fontSize: '13px',
+            fontWeight: '500', marginBottom: '16px', padding: 0,
+          }}>← Back to Hub</button>
+          <div style={{ display: 'flex', alignItems: 'center',
+            gap: '16px', flexWrap: 'wrap' }}>
+            <Avatar url={form.photo_url} name={form.name} size={64} />
+            <div>
+              <h1 style={{ fontFamily: "'Lora',serif",
+                fontSize: 'clamp(20px,3vw,28px)', fontWeight: '600',
+                color: '#fff', marginBottom: '4px' }}>
+                Internship Profile
+              </h1>
+              <p style={{ fontSize: '13px',
+                color: 'rgba(255,255,255,0.45)' }}>
+                {user?.email} · {form.batch}
+              </p>
+            </div>
+          </div>
+
+          {/* Step indicator */}
+          <div style={{ display: 'flex', gap: '6px',
+            marginTop: '24px', flexWrap: 'wrap' }}>
+            {STEPS.map((s, i) => (
+              <button key={s} onClick={() => setStep(i)} style={{
+                padding: '6px 14px', borderRadius: '100px', border: 'none',
+                fontSize: '11px', fontWeight: '600', cursor: 'pointer',
+                background: step === i
+                  ? '#1D9E75'
+                  : i < step
+                    ? 'rgba(29,158,117,0.3)'
+                    : 'rgba(255,255,255,0.1)',
+                color: step === i ? '#fff'
+                  : i < step ? '#9FE1CB'
+                  : 'rgba(255,255,255,0.5)',
+                transition: 'all 0.15s',
+              }}>{i + 1}. {s}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '800px', margin: '0 auto',
+        padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,32px)' }}>
+
+        {/* ── STEP 0: PERSONAL INFO ── */}
+        {step === 0 && (
+          <>
+            <SectionCard title="Personal Details"
+              subtitle="Basic information for your placement profile.">
+              <div style={{ display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
+                gap: '16px' }}>
+                <TextInput label="Full Name" required
+                  value={form.name}
+                  onChange={v => setForm(f => ({ ...f, name: v }))}
+                  placeholder="As on university records" />
+                <TextInput label="Roll Number" required
+                  value={form.roll_number}
+                  onChange={v => setForm(f => ({ ...f, roll_number: v }))}
+                  placeholder="e.g. MLIS2025001" />
+                <TextInput label="Email" disabled
+                  value={form.email} onChange={() => {}} />
+                <SelectInput label="Batch" required
+                  value={form.batch}
+                  onChange={v => setForm(f => ({ ...f, batch: v }))}
+                  options={BATCHES} />
+                <TextInput label="Phone Number" required
+                  value={form.phone} type="tel"
+                  onChange={v => setForm(f => ({ ...f, phone: v }))}
+                  placeholder="+91 XXXXX XXXXX" />
+                <TextInput label="LinkedIn Profile URL"
+                  value={form.linkedin_url}
+                  onChange={v => setForm(f => ({ ...f, linkedin_url: v }))}
+                  placeholder="linkedin.com/in/yourname" />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Professional Bio"
+              subtitle="A short summary about yourself and your career interests.">
+              <textarea
+                value={form.bio}
+                onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                placeholder="E.g. Aspiring Digital Librarian with interest in metadata and knowledge organisation..."
+                maxLength={300}
+                rows={4}
+                style={{
+                  width: '100%', padding: '12px 14px',
+                  border: '1.5px solid rgba(29,158,117,0.2)',
+                  borderRadius: '12px', fontSize: '13px', outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  color: '#0D1A16',
+                }}
+              />
+              <div style={{ fontSize: '11px', color: '#8FA89E',
+                textAlign: 'right', marginTop: '4px' }}>
+                {(form.bio || '').length}/300
+              </div>
+            </SectionCard>
+          </>
+        )}
+
+        {/* ── STEP 1: PREFERENCES ── */}
+        {step === 1 && (
+          <>
+            <SectionCard title="Availability"
+              subtitle="When are you available for an internship?">
+              <div style={{ display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))',
+                gap: '16px' }}>
+                <TextInput label="Available From" type="date"
+                  value={form.availability_from}
+                  onChange={v => setForm(f => ({ ...f, availability_from: v }))} />
+                <TextInput label="Available To" type="date"
+                  value={form.availability_to}
+                  onChange={v => setForm(f => ({ ...f, availability_to: v }))} />
+                <TextInput label="Preferred City / Location"
+                  value={form.preferred_location}
+                  onChange={v => setForm(f => ({ ...f, preferred_location: v }))}
+                  placeholder="e.g. Bangalore, Delhi" />
+                <SelectInput label="Willing to Relocate?"
+                  value={form.willing_to_relocate}
+                  onChange={v => setForm(f => ({ ...f, willing_to_relocate: v }))}
+                  options={['Yes', 'No', 'Depends on opportunity']} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Internship Type Preferences"
+              subtitle="Select all types you are interested in.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {INTERNSHIP_TYPES.map(t => (
+                  <TagPill key={t} label={t}
+                    active={form.internship_type.includes(t)}
+                    onClick={() => toggle('internship_type', t)} />
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Domain Preferences"
+              subtitle="Which domains interest you most?">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {DOMAIN_OPTIONS.map(d => (
+                  <TagPill key={d} label={d}
+                    active={form.preferred_domains.includes(d)}
+                    onClick={() => toggle('preferred_domains', d)} />
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Organisation Preferences"
+              subtitle="Name up to 3 specific organisations you'd like to intern at.">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <TextInput label="1st Preference"
+                  value={form.org_preference_1}
+                  onChange={v => setForm(f => ({ ...f, org_preference_1: v }))}
+                  placeholder="e.g. ISRO Library, Bangalore" />
+                <TextInput label="2nd Preference"
+                  value={form.org_preference_2}
+                  onChange={v => setForm(f => ({ ...f, org_preference_2: v }))}
+                  placeholder="e.g. National Library of India, Kolkata" />
+                <TextInput label="3rd Preference"
+                  value={form.org_preference_3}
+                  onChange={v => setForm(f => ({ ...f, org_preference_3: v }))}
+                  placeholder="e.g. INFLIBNET Centre, Gandhinagar" />
+              </div>
+            </SectionCard>
+          </>
+        )}
+
+        {/* ── STEP 2: SKILLS & TOOLS ── */}
+        {step === 2 && (
+          <>
+            <SectionCard title="LIS Skills"
+              subtitle="Select skills you are comfortable with.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {SKILL_OPTIONS.map(s => (
+                  <TagPill key={s} label={s}
+                    active={form.skills.includes(s)}
+                    onClick={() => toggle('skills', s)} />
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Software & Tools"
+              subtitle="Tools you have worked with or are learning.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {TOOL_OPTIONS.map(t => (
+                  <TagPill key={t} label={t}
+                    active={form.tools.includes(t)}
+                    onClick={() => toggle('tools', t)} />
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Languages Known"
+              subtitle="Languages you can read, write, or speak professionally.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {LANG_OPTIONS.map(l => (
+                  <TagPill key={l} label={l}
+                    active={form.languages.includes(l)}
+                    onClick={() => toggle('languages', l)} />
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Anything else?"
+              subtitle="Any other information relevant to your placement.">
+              <textarea
+                value={form.extra_info}
+                onChange={e => setForm(f => ({ ...f, extra_info: e.target.value }))}
+                placeholder="e.g. I have completed a digitisation project at DRTC. I am also learning Python for library data analysis..."
+                rows={4}
+                style={{
+                  width: '100%', padding: '12px 14px',
+                  border: '1.5px solid rgba(29,158,117,0.2)',
+                  borderRadius: '12px', fontSize: '13px', outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#0D1A16',
+                }}
+              />
+            </SectionCard>
+          </>
+        )}
+
+        {/* ── STEP 3: DOCUMENTS ── */}
+        {step === 3 && (
+          <>
+            <SectionCard title="Profile Photo"
+              subtitle="A professional photo for your placement profile.">
+              <div style={{ display: 'flex', alignItems: 'center',
+                gap: '20px', flexWrap: 'wrap' }}>
+                <Avatar url={form.photo_url} name={form.name} size={80} />
+                <div>
+                  <button onClick={() => photoRef.current?.click()}
+                    disabled={uploading.photo}
+                    style={{
+                      background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+                      color: '#fff', border: 'none', borderRadius: '100px',
+                      padding: '10px 22px', fontSize: '13px',
+                      fontWeight: '600', cursor: 'pointer',
+                      opacity: uploading.photo ? 0.6 : 1,
+                    }}>
+                    {uploading.photo ? 'Uploading...' : '📷 Upload Photo'}
+                  </button>
+                  <input ref={photoRef} type="file" accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={e => uploadPhoto(e.target.files[0])} />
+                  <p style={{ fontSize: '11px', color: '#8FA89E', marginTop: '6px' }}>
+                    JPG or PNG. Max 2MB. Square preferred.
+                  </p>
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Curriculum Vitae (CV)"
+              subtitle="Upload your CV as a PDF. Max 5MB.">
+              <div style={{ display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '12px',
+                    background: '#FCEBEB',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                      stroke="#E24B4A" strokeWidth="1.8">
+                      <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '600',
+                      color: '#0D1A16', marginBottom: '3px' }}>
+                      {form.cv_url ? 'CV Uploaded ✓' : 'No CV uploaded yet'}
+                    </div>
+                    {form.cv_url && (
+                      <a href={form.cv_url} target="_blank" rel="noreferrer"
+                        style={{ fontSize: '12px', color: '#1D9E75',
+                          fontWeight: '600', textDecoration: 'none' }}>
+                        View uploaded CV ↗
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => cvRef.current?.click()}
+                    disabled={uploading.cv}
+                    style={{
+                      background: form.cv_url
+                        ? 'rgba(29,158,117,0.08)'
+                        : 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+                      color: form.cv_url ? '#085041' : '#fff',
+                      border: form.cv_url
+                        ? '1.5px solid rgba(29,158,117,0.2)'
+                        : 'none',
+                      borderRadius: '100px',
+                      padding: '10px 22px', fontSize: '13px',
+                      fontWeight: '600', cursor: 'pointer',
+                      opacity: uploading.cv ? 0.6 : 1,
+                    }}>
+                    {uploading.cv ? 'Uploading...' : form.cv_url ? '↑ Replace CV' : '↑ Upload CV'}
+                  </button>
+                  <input ref={cvRef} type="file" accept=".pdf"
+                    style={{ display: 'none' }}
+                    onChange={e => uploadCV(e.target.files[0])} />
+                </div>
+              </div>
+            </SectionCard>
+          </>
+        )}
+
+        {/* ── STEP 4: REVIEW & SUBMIT ── */}
+        {step === 4 && (
+          <>
+            <SectionCard title="Review Your Profile"
+              subtitle="Check everything before submitting.">
+
+              {/* Summary grid */}
+              <div style={{ display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
+                gap: '12px', marginBottom: '20px' }}>
+                {[
+                  { label: 'Name', value: form.name },
+                  { label: 'Roll Number', value: form.roll_number },
+                  { label: 'Batch', value: form.batch },
+                  { label: 'Phone', value: form.phone },
+                  { label: 'Available From', value: form.availability_from },
+                  { label: 'Available To', value: form.availability_to },
+                  { label: 'Preferred Location', value: form.preferred_location },
+                  { label: 'Willing to Relocate', value: form.willing_to_relocate },
+                  { label: '1st Org Preference', value: form.org_preference_1 },
+                  { label: '2nd Org Preference', value: form.org_preference_2 },
+                  { label: 'CV Uploaded', value: form.cv_url ? '✓ Yes' : '✗ No' },
+                  { label: 'Photo Uploaded', value: form.photo_url ? '✓ Yes' : '✗ No' },
+                ].map(r => (
+                  <div key={r.label} style={{
+                    background: '#F5F7F6', borderRadius: '10px', padding: '10px 14px',
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: '700',
+                      color: '#1D9E75', textTransform: 'uppercase',
+                      letterSpacing: '0.08em', marginBottom: '3px' }}>
+                      {r.label}
+                    </div>
+                    <div style={{ fontSize: '13px', color: r.value ? '#0D1A16' : '#8FA89E' }}>
+                      {r.value || 'Not filled'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tag summaries */}
+              {[
+                { label: 'Internship Types', values: form.internship_type },
+                { label: 'Domains', values: form.preferred_domains },
+                { label: 'Skills', values: form.skills },
+                { label: 'Tools', values: form.tools },
+                { label: 'Languages', values: form.languages },
+              ].map(s => s.values.length > 0 && (
+                <div key={s.label} style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: '700',
+                    color: '#1D9E75', textTransform: 'uppercase',
+                    letterSpacing: '0.08em', marginBottom: '6px' }}>
+                    {s.label}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {s.values.map(v => (
+                      <span key={v} style={{
+                        padding: '3px 10px', borderRadius: '100px',
+                        fontSize: '11px', background: '#E1F5EE', color: '#085041',
+                        fontWeight: '600',
+                      }}>{v}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </SectionCard>
+
+            {/* Consent */}
+            <SectionCard>
+              <label style={{
+                display: 'flex', alignItems: 'flex-start', gap: '12px',
+                cursor: 'pointer',
+              }}>
+                <div onClick={() => setForm(f => ({ ...f, consent: !f.consent }))}
+                  style={{
+                    width: '20px', height: '20px', borderRadius: '5px',
+                    border: `2px solid ${form.consent ? '#1D9E75' : 'rgba(29,158,117,0.3)'}`,
+                    background: form.consent ? '#1D9E75' : '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s',
+                  }}>
+                  {form.consent && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="#fff" strokeWidth="3">
+                      <path d="M5 13l4 4L19 7"/>
+                    </svg>
+                  )}
+                </div>
+                <span style={{ fontSize: '13px', color: '#2E4F44', lineHeight: '1.6' }}>
+                  I consent to sharing this information with the DRTC Placement Cell for internship coordination. I understand this data will be used only for academic and placement purposes.
+                </span>
+              </label>
+              {errors.consent && (
+                <div style={{ fontSize: '12px', color: '#E24B4A', marginTop: '8px' }}>
+                  You must give consent to submit.
+                </div>
+              )}
+            </SectionCard>
+
+            {/* Submit button */}
+            <button onClick={handleSubmit} disabled={saving}
+              style={{
+                width: '100%', padding: '16px',
+                background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+                color: '#fff', border: 'none', borderRadius: '14px',
+                fontSize: '15px', fontWeight: '700', cursor: 'pointer',
+                opacity: saving ? 0.6 : 1, letterSpacing: '0.05em',
+              }}>
+              {saving ? 'Submitting...' : '✓ Submit Internship Profile'}
+            </button>
+          </>
+        )}
+
+        {/* ── NAVIGATION ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginTop: '24px', flexWrap: 'wrap', gap: '10px',
+        }}>
+          <button onClick={() => setStep(s => Math.max(0, s - 1))}
+            disabled={step === 0}
+            style={{
+              background: 'transparent', color: '#5A7A6E',
+              border: '1.5px solid rgba(29,158,117,0.2)',
+              borderRadius: '100px', padding: '10px 22px',
+              fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+              opacity: step === 0 ? 0.3 : 1,
+            }}>← Previous</button>
+
+          <span style={{ fontSize: '12px', color: '#8FA89E' }}>
+            Step {step + 1} of {STEPS.length}
+          </span>
+
+          {step < STEPS.length - 1 ? (
+            <button onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
+              style={{
+                background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+                color: '#fff', border: 'none', borderRadius: '100px',
+                padding: '10px 22px', fontSize: '13px',
+                fontWeight: '600', cursor: 'pointer',
+              }}>Next →</button>
+          ) : (
+            <span />
+          )}
+        </div>
+      </div>
+    </div>
   )
 }

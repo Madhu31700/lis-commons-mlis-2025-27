@@ -1,6 +1,3 @@
-// Remove useState import since we use props now
-import { useState } from "react" 
-
 const semesterData = {
   "Semester I": [
     "Paper 01 – Foundations of Library and Information Science",
@@ -32,105 +29,147 @@ const semesterData = {
   ],
 }
 
-// 🔥 ACCEPT PROPS HERE
+const SEM_COLORS = {
+  "Semester I":   { accent: '#1D9E75', bg: '#E1F5EE', light: '#9FE1CB' },
+  "Semester II":  { accent: '#0C447C', bg: '#E6F1FB', light: '#85B7EB' },
+  "Semester III": { accent: '#3C3489', bg: '#EEEDFE', light: '#AFA9EC' },
+  "Semester IV":  { accent: '#633806', bg: '#FAEEDA', light: '#FAC775' },
+}
+
 export default function Year({ openPaper, goBack, activeTab, setActiveTab }) {
-  
-  const tabs = ["Semester I", "Semester II", "Semester III", "Semester IV"]
-  
-  // Use props instead of local state
-  const currentPapers = semesterData[activeTab] || []
+  const tabs = ["Semester I","Semester II","Semester III","Semester IV"]
+  const papers = semesterData[activeTab] || []
+  const colors = SEM_COLORS[activeTab]
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-indigo-500/30 pb-20">
-      
-      {/* GLOBAL BACKGROUND */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
-      <div className="fixed inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent pointer-events-none z-0"></div>
+    <div style={{
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#F5F7F6', minHeight: '100vh',
+    }}>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10">
-        
-        {/* --- HEADER --- */}
-        <div className="flex items-center justify-between mb-8">
-          <button 
-            onClick={goBack} 
-            className="group flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900/50 border border-white/10 hover:border-indigo-500/50 transition-all text-slate-400 hover:text-white"
-          >
-            <span className="group-hover:-translate-x-1 transition-transform">←</span>
-            <span className="text-xs font-bold uppercase tracking-widest">Back to Hub</span>
-          </button>
-          
-          <div className="hidden md:flex items-center gap-2">
-             <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-             <span className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Junior Cohort</span>
+      {/* Header */}
+      <div style={{
+        background: `linear-gradient(160deg,${colors.bg},${colors.light}40,#f8faf9,#fff)`,
+        padding: 'clamp(28px,4vw,40px) clamp(16px,4vw,32px)',
+        borderBottom: '1px solid rgba(29,158,117,0.1)',
+      }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <button onClick={goBack} style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: 'none', border: `1.5px solid ${colors.accent}30`,
+            borderRadius: '100px', padding: '7px 16px',
+            fontSize: '12px', fontWeight: '600', color: colors.accent,
+            cursor: 'pointer', marginBottom: '20px',
+          }}>← Back to Hub</button>
+
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            background: `${colors.accent}12`,
+            border: `1px solid ${colors.accent}25`,
+            borderRadius: '100px', padding: '3px 12px',
+            fontSize: '10px', fontWeight: '700', color: colors.accent,
+            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px',
+          }}>
+            Junior Cohort · 2025–27
           </div>
+
+          <h1 style={{
+            fontFamily: "'Lora',serif",
+            fontSize: 'clamp(24px,4vw,36px)',
+            fontWeight: '600', color: '#0D1A16', marginBottom: '6px',
+          }}>Academic Library</h1>
+          <p style={{ fontSize: '14px', color: '#5A7A6E' }}>
+            Select a semester to view papers and resources.
+          </p>
         </div>
+      </div>
 
-        <div className="mb-8">
-           <h1 className="text-3xl md:text-5xl font-black text-white mb-2">
-             Academic <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Library</span>
-           </h1>
-           <p className="text-slate-400 text-sm">Select a semester tab to view papers.</p>
+      {/* Semester tabs */}
+      <div style={{
+        position: 'sticky', top: 58, zIndex: 30,
+        background: 'rgba(255,255,255,0.97)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(29,158,117,0.1)',
+        padding: '10px clamp(16px,4vw,32px)',
+      }}>
+        <div style={{
+          maxWidth: '1100px', margin: '0 auto',
+          display: 'flex', gap: '6px', overflowX: 'auto',
+        }}>
+          {tabs.map(tab => {
+            const c = SEM_COLORS[tab]
+            const isActive = activeTab === tab
+            return (
+              <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                padding: '8px 18px', borderRadius: '100px', border: 'none',
+                fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                whiteSpace: 'nowrap', transition: 'all 0.15s',
+                background: isActive ? c.accent : `${c.accent}10`,
+                color: isActive ? '#fff' : c.accent,
+              }}>{tab}</button>
+            )
+          })}
         </div>
+      </div>
 
-        {/* --- TABS (STICKY TOP) --- */}
-        <div className="sticky top-4 z-50 mb-10 p-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl flex overflow-x-auto no-scrollbar gap-2 shadow-2xl">
-           {tabs.map((tab) => (
-             <button
-               key={tab}
-               onClick={() => setActiveTab(tab)} // 🔥 Updates parent state
-               className={`
-                 flex-1 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap
-                 ${activeTab === tab 
-                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 scale-[1.02]" 
-                   : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
-                 }
-               `}
-             >
-               {tab}
-             </button>
-           ))}
-        </div>
-
-        {/* --- PAPERS GRID --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-           {currentPapers.map((paperStr, index) => {
-             const [codePart, titlePart] = paperStr.split(' – ')
-             const paperCode = codePart.replace('Paper ', '')
-
-             return (
-               <div 
-                 key={index}
-                 onClick={() => openPaper(paperStr)}
-                 className="
-                   group cursor-pointer relative overflow-hidden
-                   bg-slate-900/40 border border-white/5 p-6 rounded-[2rem]
-                   hover:bg-slate-900/60 hover:border-indigo-500/30 hover:scale-[1.01] 
-                   transition-all duration-300 shadow-lg
-                 "
-               >
-                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-indigo-500/20 transition-all"></div>
-
-                 <div className="relative z-10 flex flex-col justify-between h-full min-h-[160px]">
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-[10px] font-black text-slate-400 bg-slate-950 px-2 py-1 rounded border border-slate-800 uppercase tracking-widest group-hover:text-indigo-400 group-hover:border-indigo-500/30 transition-colors">
-                          P-{paperCode}
-                        </span>
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-200 leading-snug group-hover:text-white transition-colors">
-                        {titlePart}
-                      </h3>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider group-hover:text-indigo-300">View Resources</span>
-                    </div>
-                 </div>
-               </div>
-             )
-           })}
+      {/* Papers grid */}
+      <div style={{
+        maxWidth: '1100px', margin: '0 auto',
+        padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,32px)',
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))',
+          gap: '14px',
+        }}>
+          {papers.map((paperStr, i) => {
+            const [codePart, titlePart] = paperStr.split(' – ')
+            const paperNum = codePart.replace('Paper ', '')
+            return (
+              <div key={i} className="card-hover"
+                onClick={() => openPaper(paperStr)}
+                style={{
+                  background: '#fff',
+                  border: `1.5px solid ${colors.accent}15`,
+                  borderRadius: '18px', padding: '22px',
+                  cursor: 'pointer', display: 'flex',
+                  flexDirection: 'column', gap: '12px',
+                }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}>
+                  <span style={{
+                    padding: '3px 10px', borderRadius: '100px',
+                    fontSize: '10px', fontWeight: '700',
+                    background: colors.bg, color: colors.accent,
+                    letterSpacing: '0.06em',
+                  }}>P–{paperNum}</span>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    background: colors.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                      stroke={colors.accent} strokeWidth="2.5">
+                      <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </div>
+                <h3 style={{
+                  fontFamily: "'Lora',serif", fontSize: '15px',
+                  fontWeight: '600', color: '#0D1A16', lineHeight: '1.4',
+                  flex: 1,
+                }}>{titlePart}</h3>
+                <div style={{
+                  paddingTop: '10px',
+                  borderTop: `1px solid ${colors.accent}12`,
+                  fontSize: '11px', fontWeight: '600',
+                  color: colors.accent,
+                }}>View Resources →</div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

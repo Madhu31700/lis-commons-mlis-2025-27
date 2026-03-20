@@ -1,239 +1,530 @@
-import { useEffect, useState } from "react";
-import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore"; // Added delete imports
-import { db } from "../firebase";
-import { useAuth } from "../context/AuthContext";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+import { useState, useEffect } from "react"
+import { supabase } from "../supabase"
+import * as XLSX from "xlsx"
 
-const PLACEMENT_EMAILS = ["madhu@drtc.isibang.ac.in", "amisha@drtc.isibang.ac.in"];
+const STATUS_COLORS = {
+  submitted:  { bg: "#E1F5EE", color: "#085041", label: "Submitted" },
+  reviewed:   { bg: "#E6F1FB", color: "#0C447C", label: "Reviewed" },
+  shortlisted:{ bg: "#FAEEDA", color: "#633806", label: "Shortlisted" },
+  placed:     { bg: "#EAF3DE", color: "#27500A", label: "Placed" },
+  withdrawn:  { bg: "#FCEBEB", color: "#A32D2D", label: "Withdrawn" },
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return "—"
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
+  if (diff < 86400)  return `${Math.floor(diff/3600)}h ago`
+  return `${Math.floor(diff/86400)}d ago`
+}
+
+function Avatar({ url, name, size = 36 }) {
+  const [err, setErr] = useState(false)
+  if (url && !err) return (
+    <img src={url} onError={() => setErr(true)}
+      style={{ width: size, height: size, borderRadius: "50%",
+        objectFit: "cover", border: "1.5px solid #9FE1CB", flexShrink: 0 }}
+      alt={name} />
+  )
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      background: "linear-gradient(135deg,#1D9E75,#5DCAA5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: "#fff", fontSize: size * 0.38, fontWeight: "700",
+    }}>{name?.charAt(0)?.toUpperCase() || "S"}</div>
+  )
+}
 
 export default function PlacementDashboard({ goBack }) {
-  const { user } = useAuth();
-  const [entries, setEntries] = useState([]);
-  const [search, setSearch] = useState("");
+  const [submissions, setSubmissions] = useState([])
+  const [loading,     setLoading]     = useState(true)
+  const [selected,    setSelected]    = useState(null)
+  const [search,      setSearch]      = useState("")
+  const [filter,      setFilter]      = useState("all")
+  const [noteText,    setNoteText]    = useState("")
+  const [savingNote,  setSavingNote]  = useState(false)
 
-  const isPlacement = user && PLACEMENT_EMAILS.includes(user.email);
+  useEffect(() => { fetchAll() }, [])
 
-  useEffect(() => {
-    if (!isPlacement) return;
-    const ref = collection(db, "internships");
-    const unsub = onSnapshot(ref, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setEntries(data);
-    });
-    return () => unsub();
-  }, [isPlacement]);
+  const fetchAll = async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from("internship_submissions")
+      .select("*")
+      .order("submitted_at", { ascending: false })
+    setSubmissions(data || [])
+    setLoading(false)
+  }
 
-  /* ---------- SEARCH & FILTER LOGIC ---------- */
-  const filteredEntries = entries.filter(e => {
-    const searchTerm = search.toLowerCase();
-    return (
-      e.name?.toLowerCase().includes(searchTerm) ||
-      e.roll?.toLowerCase().includes(searchTerm) ||
-      e.skills?.some(s => s.toLowerCase().includes(searchTerm)) ||
-      e.sector?.some(s => s.toLowerCase().includes(searchTerm)) ||
-      e.tools?.some(t => t.toLowerCase().includes(searchTerm))
-    );
-  });
+  const updateStatus = async (id, status) => {
+    await supabase
+      .from("internship_submissions")
+      .update({ status })
+      .eq("id", id)
+    setSubmissions(s => s.map(x => x.id === id ? { ...x, status } : x))
+    if (selected?.id === id) setSelected(s => ({ ...s, status }))
+  }
 
-  /* ---------- DELETE LOGIC (NEW) ---------- */
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to permanently delete this candidate profile? This action cannot be undone.")) {
-      try {
-        await deleteDoc(doc(db, "internships", id));
-      } catch (err) {
-        alert("Error deleting profile: " + err.message);
-      }
-    }
-  };
+  const saveNote = async () => {
+    if (!selected) return
+    setSavingNote(true)
+    await supabase
+      .from("internship_submissions")
+      .update({ admin_notes: noteText })
+      .eq("id", selected.id)
+    setSubmissions(s => s.map(x => x.id === selected.id
+      ? { ...x, admin_notes: noteText } : x))
+    setSelected(s => ({ ...s, admin_notes: noteText }))
+    setSavingNote(false)
+  }
 
-  /* ---------- EXCEL EXPORT ---------- */
-  const exportToExcel = () => {
-    const formatted = entries.map((e) => ({
-      Name: e.name,
-      Roll: e.roll,
-      Email: e.email,
-      Phone: e.phone || "",
-      Bio: e.bio || "",
-      Availability: e.availability || "",
-      Sectors: e.sector?.join(", "),
-      Skills: e.skills?.join(", "),
-      Tools: e.tools?.join(", "),
-      Location: e.location,
-      Relocation: e.relocate,
-      LinkedIn: e.linkedin || "",
-      CV_Link: e.cvLink || "",
-    }));
+  const openDetail = (sub) => {
+    setSelected(sub)
+    setNoteText(sub.admin_notes || "")
+  }
 
-    const worksheet = XLSX.utils.json_to_sheet(formatted);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const file = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    saveAs(file, `Placement_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
+  // Export to Excel
+  const exportExcel = () => {
+    const rows = filtered.map(s => ({
+      "Name":                 s.name || "",
+      "Roll Number":          s.roll_number || "",
+      "Batch":                s.batch || "",
+      "Email":                s.email || "",
+      "Phone":                s.phone || "",
+      "LinkedIn":             s.linkedin_url || "",
+      "Bio":                  s.bio || "",
+      "Available From":       s.availability_from || "",
+      "Available To":         s.availability_to || "",
+      "Preferred Location":   s.preferred_location || "",
+      "Willing to Relocate":  s.willing_to_relocate || "",
+      "Internship Types":     (s.internship_type || []).join(", "),
+      "Preferred Domains":    (s.preferred_domains || []).join(", "),
+      "1st Org Preference":   s.org_preference_1 || "",
+      "2nd Org Preference":   s.org_preference_2 || "",
+      "3rd Org Preference":   s.org_preference_3 || "",
+      "Skills":               (s.skills || []).join(", "),
+      "Tools":                (s.tools || []).join(", "),
+      "Languages":            (s.languages || []).join(", "),
+      "Extra Info":           s.extra_info || "",
+      "CV URL":               s.cv_url || "",
+      "Photo URL":            s.photo_url || "",
+      "Status":               s.status || "",
+      "Admin Notes":          s.admin_notes || "",
+      "Submitted At":         s.submitted_at
+        ? new Date(s.submitted_at).toLocaleString("en-IN") : "",
+    }))
 
-  if (!isPlacement) return <div className="p-20 text-center text-slate-500 font-mono tracking-widest">ERROR: UNAUTHORIZED_ACCESS</div>;
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Internship Profiles")
+
+    // Auto column widths
+    const cols = Object.keys(rows[0] || {}).map(k => ({
+      wch: Math.max(k.length, 15)
+    }))
+    ws["!cols"] = cols
+
+    XLSX.writeFile(wb, `DRTC_Internship_Profiles_${new Date().toISOString().slice(0,10)}.xlsx`)
+  }
+
+  const filtered = submissions.filter(s => {
+    const matchSearch = search === "" ||
+      s.name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.email?.toLowerCase().includes(search.toLowerCase()) ||
+      s.roll_number?.toLowerCase().includes(search.toLowerCase())
+    const matchFilter = filter === "all" || s.status === filter
+    return matchSearch && matchFilter
+  })
+
+  const inp = {
+    padding: "9px 14px",
+    border: "1.5px solid rgba(29,158,117,0.2)",
+    borderRadius: "10px", fontSize: "13px", outline: "none",
+    fontFamily: "'Plus Jakarta Sans',sans-serif", color: "#0D1A16",
+    background: "#fff",
+  }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 pb-20 selection:bg-indigo-500/30">
-      
-      {/* HEADER & SEARCH BAR */}
-      <header className="sticky top-0 z-40 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col lg:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-4">
-            <button onClick={goBack} className="p-2.5 hover:bg-slate-800 rounded-2xl transition-all text-slate-400">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-            </button>
+    <div style={{
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: "#F5F7F6", minHeight: "100vh",
+    }}>
+
+      {/* ── HEADER ── */}
+      <div style={{
+        background: "linear-gradient(160deg,#0D1A16,#1A302A)",
+        padding: "clamp(28px,4vw,40px) clamp(16px,4vw,32px)",
+      }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <button onClick={goBack} style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "rgba(255,255,255,0.5)", fontSize: "13px",
+            fontWeight: "500", marginBottom: "16px", padding: 0,
+          }}>← Back to Admin</button>
+
+          <div style={{
+            display: "flex", justifyContent: "space-between",
+            alignItems: "flex-end", flexWrap: "wrap", gap: "16px",
+          }}>
             <div>
-              <h1 className="text-xl font-black text-white uppercase tracking-tighter">Placement Console</h1>
-              <p className="text-[10px] text-indigo-500 font-bold tracking-[0.3em] uppercase">Librandhana 2026</p>
+              <h1 style={{
+                fontFamily: "'Lora',serif",
+                fontSize: "clamp(22px,3vw,32px)",
+                fontWeight: "600", color: "#fff", marginBottom: "6px",
+              }}>Placement Dashboard</h1>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)" }}>
+                {submissions.length} total submissions ·{" "}
+                {submissions.filter(s => s.status === "submitted").length} pending review
+              </p>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-4 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-96">
-              <input 
-                type="text" 
-                placeholder="Search by name, skill, or sector..." 
-                className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-12 py-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-600"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <svg className="absolute left-4 top-3.5 text-slate-500" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-            <button onClick={exportToExcel} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl text-xs font-black transition-all shadow-xl shadow-indigo-600/10 active:scale-95 uppercase tracking-widest">
-              Export Excel
+
+            <button onClick={exportExcel} style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              background: "linear-gradient(135deg,#1D9E75,#0F6E56)",
+              color: "#fff", border: "none", borderRadius: "100px",
+              padding: "10px 22px", fontSize: "13px", fontWeight: "600",
+              cursor: "pointer",
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="#fff" strokeWidth="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export to Excel
             </button>
           </div>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-6 pt-12">
-        
-        {/* STATS HUD */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <HudCard label="Total Candidates" value={entries.length} sub="Applications received" />
-          <HudCard label="Mobile Ready" value={entries.filter(e => e.relocate === 'Yes').length} sub="Willing to relocate" />
-          <HudCard label="Digital CVs" value={entries.filter(e => e.cvLink).length} sub="PDFs attached" />
-          <HudCard label="Corporate Interest" value={entries.filter(e => e.sector?.includes('Corporate / KM')).length} sub="KM specialists" />
-        </div>
-
-        {/* CANDIDATE FEED */}
-        <div className="space-y-8">
-          {filteredEntries.length > 0 ? (
-            filteredEntries.map((e) => (
-              <div key={e.id} className="relative bg-[#0f172a]/30 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 group">
-                
-                {/* --- ADMIN DELETE BUTTON (Top Right) --- */}
-                <button 
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleDelete(e.id);
-                  }}
-                  className="absolute top-6 right-6 z-10 p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  title="Delete Profile"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
-
-                <div className="flex flex-col lg:flex-row">
-                  
-                  {/* LEFT: IDENTITY COLUMN */}
-                  <div className="lg:w-80 p-10 bg-slate-900/40 border-r border-slate-800 flex flex-col items-center">
-                    <img 
-                      src={e.cvPhoto || `https://ui-avatars.com/api/?name=${e.name}&background=1e293b&color=6366f1`} 
-                      className="w-36 h-36 rounded-[3rem] object-cover mb-6 ring-4 ring-slate-800 group-hover:ring-indigo-500/20 transition-all duration-700 shadow-2xl" 
-                      alt="" 
-                    />
-                    <h2 className="text-center font-black text-white text-xl leading-tight px-2">{e.name}</h2>
-                    <p className="text-indigo-400 font-mono text-xs tracking-widest mt-2 uppercase">{e.roll}</p>
-                    
-                    <div className="flex flex-col gap-3 mt-8 w-full">
-                      {e.cvLink && (
-                        <a href={e.cvLink} target="_blank" rel="noreferrer" className="w-full bg-indigo-600 text-white py-3 rounded-2xl text-[10px] font-black text-center transition-all uppercase tracking-[0.2em] shadow-lg shadow-indigo-600/20">View Resume</a>
-                      )}
-                      {e.linkedin && (
-                        <a href={e.linkedin} target="_blank" rel="noreferrer" className="w-full bg-slate-800 hover:bg-[#0077b5] py-3 rounded-2xl text-[10px] font-black text-center transition-all uppercase tracking-[0.2em] text-slate-300 hover:text-white border border-slate-700">LinkedIn</a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* RIGHT: DATA COLUMN */}
-                  <div className="flex-1 p-10">
-                    {/* PROFESSIONAL BIO */}
-                    {e.bio && (
-                      <div className="mb-10">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                          Professional Summary <div className="h-[1px] bg-slate-800 flex-1"></div>
-                        </p>
-                        <p className="text-sm text-slate-300 leading-relaxed italic font-medium">"{e.bio}"</p>
-                      </div>
-                    )}
-
-                    {/* CORE INFO GRID */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-6 mb-12">
-                      <DataBlock label="Availability" value={e.availability} />
-                      <DataBlock label="Location" value={e.location} />
-                      <DataBlock label="Mobility" value={e.relocate} />
-                      <DataBlock label="Contact Email" value={e.email} />
-                      <DataBlock label="Contact Phone" value={e.phone} />
-                      <DataBlock label="Specialization" value={e.corporateRole || e.libraryType || "Generalist"} />
-                    </div>
-
-                    {/* TAGS SECTION */}
-                    <div className="space-y-8 pt-8 border-t border-slate-800/50">
-                      <div>
-                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Sectors of Interest</p>
-                        <div className="flex flex-wrap gap-2">
-                          {e.sector?.map(s => <span key={s} className="px-4 py-1.5 bg-indigo-500/5 text-indigo-300 border border-indigo-500/20 rounded-xl text-[10px] font-black uppercase">{s}</span>)}
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-4">Technical Stack & Tools</p>
-                        <div className="flex flex-wrap gap-2">
-                          {e.skills?.map(s => <span key={s} className="px-4 py-1.5 bg-cyan-500/5 text-cyan-300 border border-cyan-500/20 rounded-xl text-[10px] font-black uppercase">{s}</span>)}
-                          {e.tools?.map(t => <span key={t} className="px-4 py-1.5 bg-slate-800/50 text-slate-400 border border-slate-700 rounded-xl text-[10px] font-black uppercase">{t}</span>)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
+          {/* Stats row */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))",
+            gap: "10px", marginTop: "20px",
+          }}>
+            {Object.entries(STATUS_COLORS).map(([key, val]) => (
+              <div key={key} style={{
+                background: "rgba(255,255,255,0.06)",
+                borderRadius: "12px", padding: "12px 16px", textAlign: "center",
+                cursor: "pointer",
+                border: filter === key
+                  ? "1.5px solid #1D9E75"
+                  : "1.5px solid transparent",
+              }} onClick={() => setFilter(filter === key ? "all" : key)}>
+                <div style={{
+                  fontSize: "22px", fontWeight: "700",
+                  color: "#fff", marginBottom: "2px",
+                }}>
+                  {submissions.filter(s => s.status === key).length}
+                </div>
+                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.45)",
+                  fontWeight: "600", textTransform: "uppercase",
+                  letterSpacing: "0.06em" }}>
+                  {val.label}
                 </div>
               </div>
-            ))
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        maxWidth: "1200px", margin: "0 auto",
+        padding: "clamp(20px,3vw,32px) clamp(16px,4vw,32px)",
+        display: "flex", gap: "20px", flexWrap: "wrap",
+        alignItems: "flex-start",
+      }}>
+
+        {/* ── LEFT: LIST ── */}
+        <div style={{ flex: "1 1 320px", minWidth: "280px" }}>
+
+          {/* Search + filter */}
+          <div style={{ display: "flex", gap: "10px",
+            marginBottom: "16px", flexWrap: "wrap" }}>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search name, roll, email..."
+              style={{ ...inp, flex: 1, minWidth: "160px" }}
+            />
+            <select value={filter} onChange={e => setFilter(e.target.value)}
+              style={{ ...inp }}>
+              <option value="all">All Statuses</option>
+              {Object.entries(STATUS_COLORS).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "60px 0",
+              color: "#1D9E75", fontSize: "14px" }}>Loading...</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <p style={{ color: "#5A7A6E" }}>No submissions found.</p>
+            </div>
           ) : (
-            <div className="py-32 text-center border-2 border-dashed border-slate-800 rounded-[3rem]">
-              <p className="text-slate-500 font-bold uppercase tracking-widest">No candidates found matching your search</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {filtered.map(sub => {
+                const st = STATUS_COLORS[sub.status] || STATUS_COLORS.submitted
+                const isSelected = selected?.id === sub.id
+                return (
+                  <div key={sub.id} onClick={() => openDetail(sub)}
+                    style={{
+                      background: "#fff",
+                      border: `1.5px solid ${isSelected
+                        ? "#1D9E75"
+                        : "rgba(29,158,117,0.12)"}`,
+                      borderRadius: "14px", padding: "14px 16px",
+                      cursor: "pointer", transition: "all 0.15s",
+                    }}>
+                    <div style={{ display: "flex", alignItems: "center",
+                      gap: "10px" }}>
+                      <Avatar url={sub.photo_url} name={sub.name} size={38} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: "14px", fontWeight: "600",
+                          color: "#0D1A16", marginBottom: "2px",
+                          whiteSpace: "nowrap", overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}>{sub.name || "—"}</div>
+                        <div style={{ fontSize: "11px", color: "#5A7A6E" }}>
+                          {sub.roll_number} · {sub.batch}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column",
+                        alignItems: "flex-end", gap: "4px", flexShrink: 0 }}>
+                        <span style={{
+                          padding: "2px 8px", borderRadius: "100px",
+                          fontSize: "10px", fontWeight: "700",
+                          background: st.bg, color: st.color,
+                        }}>{st.label}</span>
+                        <span style={{ fontSize: "10px", color: "#8FA89E" }}>
+                          {timeAgo(sub.submitted_at)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
-      </main>
-    </div>
-  );
-}
 
-/* ---------- HELPER COMPONENTS ---------- */
+        {/* ── RIGHT: DETAIL ── */}
+        {selected ? (
+          <div style={{
+            flex: "2 1 400px", minWidth: "300px",
+            background: "#fff",
+            border: "1.5px solid rgba(29,158,117,0.12)",
+            borderRadius: "20px", padding: "clamp(20px,3vw,28px)",
+            position: "sticky", top: "80px",
+            maxHeight: "calc(100vh - 100px)", overflowY: "auto",
+          }}>
 
-function HudCard({ label, value, sub }) {
-  return (
-    <div className="bg-[#0f172a] border border-slate-800 p-8 rounded-[2rem] shadow-sm relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-        <svg width="48" height="48" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            {/* Top row */}
+            <div style={{ display: "flex", alignItems: "center",
+              justifyContent: "space-between", marginBottom: "20px",
+              flexWrap: "wrap", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <Avatar url={selected.photo_url} name={selected.name} size={52} />
+                <div>
+                  <div style={{ fontFamily: "'Lora',serif", fontSize: "18px",
+                    fontWeight: "600", color: "#0D1A16" }}>
+                    {selected.name}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#5A7A6E" }}>
+                    {selected.roll_number} · {selected.batch}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setSelected(null)} style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "#8FA89E", fontSize: "18px", padding: "4px",
+              }}>✕</button>
+            </div>
+
+            {/* Status buttons */}
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700",
+                color: "#1D9E75", textTransform: "uppercase",
+                letterSpacing: "0.1em", marginBottom: "8px" }}>
+                Update Status
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {Object.entries(STATUS_COLORS).map(([key, val]) => (
+                  <button key={key}
+                    onClick={() => updateStatus(selected.id, key)}
+                    style={{
+                      padding: "5px 12px", borderRadius: "100px",
+                      border: "none", fontSize: "11px", fontWeight: "600",
+                      cursor: "pointer", transition: "all 0.15s",
+                      background: selected.status === key ? val.color : val.bg,
+                      color: selected.status === key ? "#fff" : val.color,
+                    }}>{val.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Info sections */}
+            <InfoSection label="Contact">
+              <InfoRow k="Email" v={selected.email} link={`mailto:${selected.email}`} />
+              <InfoRow k="Phone" v={selected.phone} link={`tel:${selected.phone}`} />
+              <InfoRow k="LinkedIn" v={selected.linkedin_url}
+                link={selected.linkedin_url} />
+            </InfoSection>
+
+            {selected.bio && (
+              <InfoSection label="Bio">
+                <p style={{ fontSize: "13px", color: "#2E4F44",
+                  lineHeight: "1.6" }}>{selected.bio}</p>
+              </InfoSection>
+            )}
+
+            <InfoSection label="Availability">
+              <InfoRow k="From" v={selected.availability_from} />
+              <InfoRow k="To" v={selected.availability_to} />
+              <InfoRow k="Preferred Location" v={selected.preferred_location} />
+              <InfoRow k="Relocate?" v={selected.willing_to_relocate} />
+            </InfoSection>
+
+            <InfoSection label="Organisation Preferences">
+              <InfoRow k="1st" v={selected.org_preference_1} />
+              <InfoRow k="2nd" v={selected.org_preference_2} />
+              <InfoRow k="3rd" v={selected.org_preference_3} />
+            </InfoSection>
+
+            <TagSection label="Internship Types"
+              tags={selected.internship_type} />
+            <TagSection label="Preferred Domains"
+              tags={selected.preferred_domains} />
+            <TagSection label="Skills" tags={selected.skills} />
+            <TagSection label="Tools" tags={selected.tools} />
+            <TagSection label="Languages" tags={selected.languages} />
+
+            {selected.extra_info && (
+              <InfoSection label="Additional Info">
+                <p style={{ fontSize: "13px", color: "#2E4F44",
+                  lineHeight: "1.6" }}>{selected.extra_info}</p>
+              </InfoSection>
+            )}
+
+            {/* Documents */}
+            <InfoSection label="Documents">
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                {selected.cv_url ? (
+                  <a href={selected.cv_url} target="_blank" rel="noreferrer"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: "6px",
+                      background: "#FCEBEB", color: "#A32D2D",
+                      padding: "8px 14px", borderRadius: "100px",
+                      fontSize: "12px", fontWeight: "600",
+                      textDecoration: "none",
+                    }}>
+                    📄 View CV ↗
+                  </a>
+                ) : (
+                  <span style={{ fontSize: "12px", color: "#8FA89E" }}>
+                    No CV uploaded
+                  </span>
+                )}
+              </div>
+            </InfoSection>
+
+            {/* Admin notes */}
+            <InfoSection label="Admin Notes">
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Add private notes about this student..."
+                rows={3}
+                style={{
+                  width: "100%", padding: "10px 12px",
+                  border: "1.5px solid rgba(29,158,117,0.2)",
+                  borderRadius: "10px", fontSize: "13px", outline: "none",
+                  resize: "vertical",
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  color: "#0D1A16", marginBottom: "8px",
+                }}
+              />
+              <button onClick={saveNote} disabled={savingNote} style={{
+                background: "linear-gradient(135deg,#1D9E75,#0F6E56)",
+                color: "#fff", border: "none", borderRadius: "100px",
+                padding: "8px 18px", fontSize: "12px", fontWeight: "600",
+                cursor: "pointer", opacity: savingNote ? 0.6 : 1,
+              }}>
+                {savingNote ? "Saving..." : "Save Note"}
+              </button>
+            </InfoSection>
+
+          </div>
+        ) : (
+          <div style={{
+            flex: "2 1 400px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "80px 20px", color: "#8FA89E", fontSize: "14px",
+            textAlign: "center",
+          }}>
+            <div>
+              <div style={{ fontSize: "48px", marginBottom: "12px" }}>👈</div>
+              Select a student to view their full profile
+            </div>
+          </div>
+        )}
       </div>
-      <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">{label}</p>
-      <p className="text-4xl font-black text-white mb-1 tracking-tighter">{value}</p>
-      <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">{sub}</p>
     </div>
-  );
+  )
 }
 
-function DataBlock({ label, value }) {
+function InfoSection({ label, children }) {
   return (
-    <div className="group">
-      <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-400 transition-colors">{label}</p>
-      <p className="text-[13px] text-slate-200 font-bold leading-tight">{value || "—"}</p>
+    <div style={{ marginBottom: "18px" }}>
+      <div style={{ fontSize: "10px", fontWeight: "700", color: "#1D9E75",
+        textTransform: "uppercase", letterSpacing: "0.12em",
+        marginBottom: "8px" }}>{label}</div>
+      <div style={{
+        background: "#F5F7F6", borderRadius: "12px", padding: "12px 14px",
+      }}>{children}</div>
     </div>
-  );
+  )
+}
+
+function InfoRow({ k, v, link }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between",
+      alignItems: "center", padding: "4px 0",
+      borderBottom: "1px solid rgba(29,158,117,0.06)", flexWrap: "wrap",
+      gap: "6px" }}>
+      <span style={{ fontSize: "11px", color: "#8FA89E",
+        fontWeight: "600", flexShrink: 0 }}>{k}</span>
+      {link && v ? (
+        <a href={link} target="_blank" rel="noreferrer"
+          style={{ fontSize: "12px", color: "#1D9E75",
+            fontWeight: "500", textDecoration: "none",
+            textAlign: "right", wordBreak: "break-all" }}>
+          {v} ↗
+        </a>
+      ) : (
+        <span style={{ fontSize: "12px", color: v ? "#0D1A16" : "#C8D4CE",
+          textAlign: "right" }}>{v || "—"}</span>
+      )}
+    </div>
+  )
+}
+
+function TagSection({ label, tags }) {
+  if (!tags?.length) return null
+  return (
+    <div style={{ marginBottom: "18px" }}>
+      <div style={{ fontSize: "10px", fontWeight: "700", color: "#1D9E75",
+        textTransform: "uppercase", letterSpacing: "0.12em",
+        marginBottom: "8px" }}>{label}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        {tags.map(t => (
+          <span key={t} style={{
+            padding: "3px 10px", borderRadius: "100px",
+            fontSize: "11px", fontWeight: "600",
+            background: "#E1F5EE", color: "#085041",
+          }}>{t}</span>
+        ))}
+      </div>
+    </div>
+  )
 }

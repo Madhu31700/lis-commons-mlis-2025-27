@@ -2,47 +2,66 @@ import { useState, useEffect } from "react"
 
 const FEATURES = [
   {
+    emoji: "📄",
+    title: "MLIS Syllabus",
+    desc: "Complete credit breakdown and course structure for MLIS 2024–2027. Official DRTC document.",
+    bg: "#E1F5EE", color: "#085041",
+    link: "https://www.isibang.ac.in/~adean/infsys/acadata/Brochures/mslis_new.pdf",
+    external: true,
+  },
+  {
     emoji: "✍️",
     title: "Student Blog",
     desc: "Notes, opinions, tacit knowledge and experiences — written by DRTC students.",
-    bg: "#E1F5EE", color: "#085041",
+    bg: "#E6F1FB", color: "#0C447C",
+    link: "?view=blog",
   },
   {
     emoji: "🎓",
     title: "Aspirants Guide",
     desc: "Everything about the DRTC MLIS exam, ISI Bangalore life, and how to prepare.",
-    bg: "#E6F1FB", color: "#0C447C",
+    bg: "#FAEEDA", color: "#633806",
+    link: "?view=aspirants",
   },
   {
     emoji: "💼",
     title: "LIS Job Alerts",
     desc: "Curated library and information science job listings. Subscribe for email alerts.",
-    bg: "#FAEEDA", color: "#633806",
+    bg: "#EEEDFE", color: "#3C3489",
+    link: "?view=jobs",
   },
   {
     emoji: "📅",
     title: "LIS Events",
     desc: "Local, national, and global library science events, conferences, and webinars.",
-    bg: "#EEEDFE", color: "#3C3489",
-  },
-  {
-    emoji: "📚",
-    title: "Class Resources",
-    desc: "Semester notes, past papers, syllabus — exclusive for DRTC MLIS students.",
-    bg: "#E1F5EE", color: "#085041",
+    bg: "#EAF3DE", color: "#27500A",
+    link: "?view=events",
   },
   {
     emoji: "🤝",
     title: "Placement Cell",
     desc: "Internship opportunities and placement support for DRTC students.",
     bg: "#FBEAF0", color: "#72243E",
+    link: null,
   },
 ]
 
 const RECENT_POSTS = [
-  { tag: "Tacit Knowledge", title: "What nobody tells you about the first semester at DRTC", author: "Amisha", time: "5 days ago" },
-  { tag: "Career",          title: "UGC NET Library Science — a guide from someone who cleared it", author: "Ravi S",  time: "1 week ago" },
-  { tag: "ISI Life",        title: "Cafeteria, campus walks and why ISI Bangalore is special", author: "Priya K", time: "2 days ago" },
+  {
+    tag: "Tacit Knowledge",
+    title: "What nobody tells you about the first semester at DRTC",
+    author: "Amisha", time: "5 days ago",
+  },
+  {
+    tag: "Career",
+    title: "UGC NET Library Science — a guide from someone who cleared it",
+    author: "Ravi S", time: "1 week ago",
+  },
+  {
+    tag: "ISI Life",
+    title: "Cafeteria, campus walks and why ISI Bangalore is special",
+    author: "Priya K", time: "2 days ago",
+  },
 ]
 
 export default function Landing({ onLogin }) {
@@ -53,10 +72,12 @@ export default function Landing({ onLogin }) {
   }, [])
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", background: '#fff', color: '#0D1A16' }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#fff', color: '#0D1A16' }}>
 
-      {/* ── TOP BAR ── */}
-      <div style={{ height: '3px', background: 'linear-gradient(90deg,#1D9E75,#5DCAA5,#1D9E75)' }} />
+      {/* ── TOP GREEN LINE ── */}
+      <div style={{ height: '3px',
+        background: 'linear-gradient(90deg,#1D9E75,#5DCAA5,#1D9E75)' }} />
 
       {/* ── HEADER ── */}
       <header style={{
@@ -75,21 +96,46 @@ export default function Landing({ onLogin }) {
               width: '32px', height: '32px', borderRadius: '8px',
               background: 'linear-gradient(135deg,#1D9E75,#5DCAA5)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Lora',serif", fontSize: '16px', fontWeight: '600', color: '#fff',
+              fontFamily: "'Lora',serif", fontSize: '16px',
+              fontWeight: '600', color: '#fff',
             }}>L</div>
             <div>
-              <div style={{ fontFamily: "'Lora',serif", fontSize: '15px', fontWeight: '600', color: '#0D1A16', lineHeight: 1 }}>Librandhana</div>
-              <div style={{ fontSize: '8px', color: '#1D9E75', fontWeight: '700', letterSpacing: '0.15em', textTransform: 'uppercase' }}>DRTC · ISI Bangalore</div>
+              <div style={{ fontFamily: "'Lora',serif", fontSize: '15px',
+                fontWeight: '600', color: '#0D1A16', lineHeight: 1 }}>
+                Librandhana
+              </div>
+              <div style={{ fontSize: '8px', color: '#1D9E75', fontWeight: '700',
+                letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                DRTC · ISI Bangalore
+              </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <a href="?view=blog" style={{ fontSize: '13px', color: '#5A7A6E', fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>Blog</a>
-            <a href="?view=events" style={{ fontSize: '13px', color: '#5A7A6E', fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>Events</a>
-            <a href="?view=aspirants" style={{ fontSize: '13px', color: '#5A7A6E', fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>Aspirants</a>
+
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center',
+            flexWrap: 'wrap' }}>
+            <a href="?view=blog" style={{ fontSize: '13px', color: '#5A7A6E',
+              fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>
+              Blog
+            </a>
+            <a href="?view=events" style={{ fontSize: '13px', color: '#5A7A6E',
+              fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>
+              Events
+            </a>
+            <a href="?view=aspirants" style={{ fontSize: '13px', color: '#5A7A6E',
+              fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>
+              Aspirants
+            </a>
+            <a href="https://www.isibang.ac.in/~adean/infsys/acadata/Brochures/mslis_new.pdf"
+              target="_blank" rel="noreferrer"
+              style={{ fontSize: '13px', color: '#5A7A6E',
+                fontWeight: '500', textDecoration: 'none', padding: '6px 12px' }}>
+              Syllabus
+            </a>
             <button onClick={onLogin} style={{
               background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
               color: '#fff', border: 'none', borderRadius: '100px',
-              padding: '8px 18px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+              padding: '8px 18px', fontSize: '12px', fontWeight: '600',
+              cursor: 'pointer', marginLeft: '4px',
             }}>Student Login</button>
           </div>
         </div>
@@ -109,13 +155,15 @@ export default function Landing({ onLogin }) {
         }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px',
-            background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.25)',
+            background: 'rgba(29,158,117,0.1)',
+            border: '1px solid rgba(29,158,117,0.25)',
             borderRadius: '100px', padding: '5px 14px',
             fontSize: '11px', fontWeight: '700', color: '#085041',
             letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px',
           }}>
-            <span style={{ width: '6px', height: '6px', background: '#1D9E75', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
-            MLIS 2024–27 · DRTC · ISI Bangalore
+            <span style={{ width: '6px', height: '6px', background: '#1D9E75',
+              borderRadius: '50%' }} />
+            MLIS 2025–27 · DRTC · ISI Bangalore
           </div>
 
           <h1 style={{
@@ -128,7 +176,8 @@ export default function Landing({ onLogin }) {
             <em style={{
               fontStyle: 'italic',
               background: 'linear-gradient(90deg,#0F6E56,#1D9E75,#5DCAA5)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}>of Learning.</em>
           </h1>
 
@@ -136,14 +185,17 @@ export default function Landing({ onLogin }) {
             fontSize: 'clamp(14px,2vw,16px)', color: '#5A7A6E',
             lineHeight: '1.75', maxWidth: '500px', margin: '0 auto 32px',
           }}>
-            The student platform for DRTC MLIS students — blog, resources, events, job alerts, and a guide for future LIS scholars.
+            The student platform for DRTC MLIS students — blog, resources,
+            events, job alerts, and a guide for future LIS scholars.
           </p>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px',
+            justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={onLogin} style={{
               background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
               color: '#fff', border: 'none', borderRadius: '100px',
-              padding: '13px 28px', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+              padding: '13px 28px', fontSize: '13px', fontWeight: '600',
+              cursor: 'pointer',
             }}>
               Student Login →
             </button>
@@ -155,34 +207,65 @@ export default function Landing({ onLogin }) {
             }}>
               Aspiring MLIS? →
             </a>
+            <a href="https://www.isibang.ac.in/~adean/infsys/acadata/Brochures/mslis_new.pdf"
+              target="_blank" rel="noreferrer"
+              style={{
+                background: 'transparent', color: '#085041',
+                border: '1.5px solid rgba(29,158,117,0.3)',
+                borderRadius: '100px', padding: '13px 28px',
+                fontSize: '13px', fontWeight: '600', textDecoration: 'none',
+              }}>
+              📄 View Syllabus →
+            </a>
           </div>
         </div>
       </section>
 
       {/* ── FEATURES GRID ── */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: 'clamp(48px,6vw,72px) clamp(16px,4vw,32px)' }}>
+      <section style={{
+        maxWidth: '1100px', margin: '0 auto',
+        padding: 'clamp(48px,6vw,72px) clamp(16px,4vw,32px)',
+      }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', color: '#1D9E75', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', fontWeight: '700', color: '#1D9E75',
+            letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
             What's inside
           </div>
-          <h2 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(22px,3vw,32px)', fontWeight: '600', color: '#0D1A16' }}>
+          <h2 style={{ fontFamily: "'Lora',serif",
+            fontSize: 'clamp(22px,3vw,32px)', fontWeight: '600', color: '#0D1A16' }}>
             Everything a DRTC student needs
           </h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '16px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
+          gap: '16px',
+        }}>
           {FEATURES.map(f => (
-            <div key={f.title} className="card-hover" style={{
-              border: '1.5px solid rgba(29,158,117,0.12)',
-              borderRadius: '18px', padding: '22px', cursor: 'pointer', background: '#fff',
-            }}>
+            <div key={f.title} className="card-hover"
+              onClick={() => {
+                if (f.external && f.link) window.open(f.link, '_blank')
+                else if (f.link) window.location.href = f.link
+              }}
+              style={{
+                border: '1.5px solid rgba(29,158,117,0.12)',
+                borderRadius: '18px', padding: '22px',
+                cursor: f.link ? 'pointer' : 'default',
+                background: '#fff',
+              }}>
               <div style={{
                 width: '42px', height: '42px', borderRadius: '12px',
-                background: f.bg, display: 'flex', alignItems: 'center',
-                justifyContent: 'center', fontSize: '18px', marginBottom: '14px',
+                background: f.bg,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '18px', marginBottom: '14px',
               }}>{f.emoji}</div>
-              <div style={{ fontFamily: "'Lora',serif", fontSize: '15px', fontWeight: '600', color: '#0D1A16', marginBottom: '6px' }}>{f.title}</div>
-              <p style={{ fontSize: '12px', color: '#5A7A6E', lineHeight: '1.65' }}>{f.desc}</p>
+              <div style={{ fontFamily: "'Lora',serif", fontSize: '15px',
+                fontWeight: '600', color: '#0D1A16', marginBottom: '6px' }}>
+                {f.title}
+              </div>
+              <p style={{ fontSize: '12px', color: '#5A7A6E',
+                lineHeight: '1.65' }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -194,29 +277,44 @@ export default function Landing({ onLogin }) {
         padding: 'clamp(40px,6vw,64px) clamp(16px,4vw,32px)',
       }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-            <h2 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(20px,3vw,28px)', fontWeight: '600', color: '#0D1A16' }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', marginBottom: '28px',
+            flexWrap: 'wrap', gap: '12px',
+          }}>
+            <h2 style={{ fontFamily: "'Lora',serif",
+              fontSize: 'clamp(20px,3vw,28px)',
+              fontWeight: '600', color: '#0D1A16' }}>
               Recent from the Blog
             </h2>
-            <a href="?view=blog" style={{ fontSize: '13px', color: '#1D9E75', fontWeight: '600', textDecoration: 'none' }}>
+            <a href="?view=blog" style={{ fontSize: '13px',
+              color: '#1D9E75', fontWeight: '600', textDecoration: 'none' }}>
               View all posts →
             </a>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '16px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
+            gap: '16px',
+          }}>
             {RECENT_POSTS.map(p => (
-              <div key={p.title} className="card-hover" style={{
-                background: '#fff', border: '1.5px solid rgba(29,158,117,0.1)',
-                borderRadius: '16px', padding: '20px', cursor: 'pointer',
-              }}>
+              <div key={p.title} className="card-hover"
+                onClick={() => window.location.href = '?view=blog'}
+                style={{
+                  background: '#fff',
+                  border: '1.5px solid rgba(29,158,117,0.1)',
+                  borderRadius: '16px', padding: '20px', cursor: 'pointer',
+                }}>
                 <span style={{
-                  display: 'inline-flex', padding: '2px 10px', borderRadius: '100px',
-                  fontSize: '10px', fontWeight: '700', background: '#E1F5EE', color: '#085041',
-                  marginBottom: '10px',
+                  display: 'inline-flex', padding: '2px 10px',
+                  borderRadius: '100px', fontSize: '10px', fontWeight: '700',
+                  background: '#E1F5EE', color: '#085041', marginBottom: '10px',
                 }}>{p.tag}</span>
                 <h3 style={{
-                  fontFamily: "'Lora',serif", fontSize: '14px', fontWeight: '600',
-                  color: '#0D1A16', lineHeight: '1.45', marginBottom: '12px',
+                  fontFamily: "'Lora',serif", fontSize: '14px',
+                  fontWeight: '600', color: '#0D1A16', lineHeight: '1.45',
+                  marginBottom: '12px',
                 }}>{p.title}</h3>
                 <div style={{ fontSize: '11px', color: '#8FA89E' }}>
                   {p.author} · {p.time}
@@ -228,28 +326,43 @@ export default function Landing({ onLogin }) {
       </section>
 
       {/* ── ASPIRANTS CTA ── */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 clamp(16px,4vw,32px) clamp(48px,6vw,72px)' }}>
+      <section style={{
+        maxWidth: '1100px', margin: '0 auto',
+        padding: '0 clamp(16px,4vw,32px) clamp(48px,6vw,72px)',
+      }}>
         <div style={{
           background: 'linear-gradient(135deg,#0D1A16,#1A302A)',
-          borderRadius: '20px', padding: 'clamp(36px,5vw,52px)',
+          borderRadius: '20px',
+          padding: 'clamp(36px,5vw,52px)',
           textAlign: 'center', position: 'relative', overflow: 'hidden',
         }}>
-          <svg style={{ position: 'absolute', opacity: 0.04, top: -20, right: -20 }} width="200" height="200" viewBox="0 0 200 200" fill="white">
+          <svg style={{ position: 'absolute', opacity: 0.04,
+            top: -20, right: -20 }} width="200" height="200"
+            viewBox="0 0 200 200" fill="white">
             <path d="M100 10 L112 70 L170 70 L122 105 L140 165 L100 130 L60 165 L78 105 L30 70 L88 70Z"/>
           </svg>
           <div style={{ fontSize: '24px', marginBottom: '12px' }}>✦</div>
-          <h2 style={{ fontFamily: "'Lora',serif", fontSize: 'clamp(20px,3vw,28px)', fontWeight: '600', color: '#fff', marginBottom: '10px' }}>
+          <h2 style={{
+            fontFamily: "'Lora',serif",
+            fontSize: 'clamp(20px,3vw,28px)',
+            fontWeight: '600', color: '#fff', marginBottom: '10px',
+          }}>
             Dreaming of DRTC MLIS?
           </h2>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px', lineHeight: '1.7', maxWidth: '400px', margin: '0 auto 24px' }}>
-            Read about the entrance exam, ISI Bangalore campus life, and experiences from current students.
+          <p style={{
+            fontSize: '13px', color: 'rgba(255,255,255,0.5)',
+            marginBottom: '24px', lineHeight: '1.7',
+            maxWidth: '400px', margin: '0 auto 24px',
+          }}>
+            Read about the entrance exam, ISI Bangalore campus life,
+            and experiences from current students.
           </p>
           <a href="?view=aspirants" style={{
             display: 'inline-block',
             background: 'linear-gradient(135deg,#1D9E75,#5DCAA5)',
             color: '#fff', border: 'none', borderRadius: '100px',
             padding: '13px 28px', fontSize: '13px', fontWeight: '700',
-            textDecoration: 'none', cursor: 'pointer',
+            textDecoration: 'none',
           }}>
             Read the Aspirants Guide →
           </a>
@@ -260,25 +373,34 @@ export default function Landing({ onLogin }) {
       <footer style={{
         borderTop: '1px solid rgba(29,158,117,0.1)',
         padding: 'clamp(20px,3vw,28px) clamp(16px,4vw,32px)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: '12px',
+        display: 'flex', justifyContent: 'space-between',
+        alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+        background: '#fff',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '24px', height: '24px', borderRadius: '6px',
             background: 'linear-gradient(135deg,#1D9E75,#5DCAA5)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Lora',serif", fontSize: '12px', fontWeight: '600', color: '#fff',
+            fontFamily: "'Lora',serif", fontSize: '12px',
+            fontWeight: '600', color: '#fff',
           }}>L</div>
-          <span style={{ fontFamily: "'Lora',serif", fontSize: '13px', fontWeight: '600', color: '#0D1A16' }}>Librandhana</span>
+          <span style={{ fontFamily: "'Lora',serif", fontSize: '13px',
+            fontWeight: '600', color: '#0D1A16' }}>Librandhana</span>
         </div>
         <div style={{ display: 'flex', gap: '20px' }}>
           {['Blog','Events','Aspirants','Jobs'].map(l => (
-            <a key={l} href={`?view=${l.toLowerCase()}`} style={{ fontSize: '12px', color: '#8FA89E', textDecoration: 'none' }}>{l}</a>
+            <a key={l} href={`?view=${l.toLowerCase()}`}
+              style={{ fontSize: '12px', color: '#8FA89E',
+                textDecoration: 'none' }}>{l}</a>
           ))}
         </div>
         <span style={{ fontSize: '11px', color: '#8FA89E' }}>
-          Built by <a href="https://linkedin.com/in/madhu-m01" target="_blank" rel="noreferrer" style={{ color: '#1D9E75' }}>Madhu M</a> · DRTC ISI Bangalore
+          Built by{' '}
+          <a href="https://linkedin.com/in/madhu-m01" target="_blank"
+            rel="noreferrer"
+            style={{ color: '#1D9E75' }}>Madhu M</a>
+          {' '}· DRTC ISI Bangalore
         </span>
       </footer>
     </div>

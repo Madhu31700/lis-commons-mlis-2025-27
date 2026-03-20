@@ -2,13 +2,13 @@ import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
 import { getQuoteOfTheDay } from "../data/quotes"
 import FeedbackModal from "./FeedbackModal"
-import Hero from "./Hero" 
+import Hero from "./Hero"
+import { StreakCard } from "./DailyChallenge"
 
-// --- CONFIGURATION ---
 const ADMIN_EMAILS = [
   "madhu@drtc.isibang.ac.in",
   "amisha@drtc.isibang.ac.in",
-  "madhu31700@gmail.com"
+  "madhu31700@gmail.com",
 ]
 
 const PLACEMENT_EMAILS = [
@@ -16,148 +16,271 @@ const PLACEMENT_EMAILS = [
   "amisha@drtc.isibang.ac.in",
 ]
 
+function QuickCard({ icon, title, subtitle, onClick, accent = "#1D9E75" }) {
+  return (
+    <div onClick={onClick} className="card-hover" style={{
+      background: '#fff',
+      border: `1.5px solid ${accent}18`,
+      borderRadius: '18px', padding: '20px',
+      cursor: 'pointer', display: 'flex',
+      flexDirection: 'column', gap: '12px',
+    }}>
+      <div style={{
+        width: '44px', height: '44px', borderRadius: '12px',
+        background: `${accent}15`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontFamily: "'Lora',serif", fontSize: '15px',
+          fontWeight: '600', color: '#0D1A16', marginBottom: '3px' }}>
+          {title}
+        </div>
+        <div style={{ fontSize: '12px', color: '#5A7A6E' }}>{subtitle}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function Home({
-  openBatch, 
+  openBatch,
   openGovtExams,
   openUpskilling,
   openInternshipForm,
-  openDashboard,     
-  openSyllabus, 
-  openAdminFeedback, 
-  visitCount // (Not used here anymore, passed to Footer in App.jsx)
+  openDashboard,
+  openSyllabus,
+  openAdminFeedback,
+  onOpenChallenge,
 }) {
   const { user } = useAuth()
   const quote = getQuoteOfTheDay()
-  
+
+  const isAdmin        = user && ADMIN_EMAILS.includes(user.email)
   const isPlacementRep = user && PLACEMENT_EMAILS.includes(user.email)
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email)
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-indigo-500/30 pb-20">
-      
-      {/* GLOBAL BACKGROUND */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
-      <div className="fixed inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent pointer-events-none z-0"></div>
+    <div style={{
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#F5F7F6', minHeight: '100vh',
+    }}>
 
-      {/* HERO SECTION */}
-      <div className="relative z-10">
-        <Hero /> 
-      </div>
+      {/* ── HERO ── */}
+      <Hero />
 
-      {/* DASHBOARD CONTENT */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
-        
-        {/* Quote Strip */}
-        <div className="mb-12 border-l-4 border-indigo-500 pl-6 py-2 bg-indigo-500/5 rounded-r-2xl animate-fadeIn">
-          <p className="text-slate-300 text-lg italic font-light">"{quote.text}"</p>
-          <p className="text-slate-500 text-xs mt-2 uppercase tracking-wider font-bold">— {quote.author}</p>
+      <div style={{
+        maxWidth: '1100px', margin: '0 auto',
+        padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,32px)',
+      }}>
+
+        {/* ── QUOTE ── */}
+        <div style={{
+          background: '#fff',
+          border: '1.5px solid rgba(29,158,117,0.12)',
+          borderLeft: '4px solid #1D9E75',
+          borderRadius: '0 14px 14px 0',
+          padding: '16px 20px', marginBottom: '28px',
+        }}>
+          <p style={{
+            fontFamily: "'Lora',serif",
+            fontSize: 'clamp(13px,2vw,15px)',
+            fontStyle: 'italic', color: '#2E4F44',
+            lineHeight: '1.7', marginBottom: '6px',
+          }}>"{quote.text}"</p>
+          <p style={{ fontSize: '11px', color: '#8FA89E', fontWeight: '600',
+            textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            — {quote.author}
+          </p>
         </div>
 
-        {/* --- BENTO GRID DASHBOARD --- */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-
-          {/* 1. SYLLABUS CARD */}
-          <div onClick={openSyllabus} className="md:col-span-4 bg-gradient-to-r from-indigo-900/40 via-slate-900/60 to-slate-900/40 backdrop-blur-xl border border-indigo-500/30 rounded-3xl p-8 hover:border-indigo-400/50 transition-all group cursor-pointer relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-indigo-500/20 transition-all"></div>
-             
-             <div className="flex items-center gap-6 relative z-10">
-               <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/20">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-               </div>
-               <div>
-                 <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Official</span>
-                    <h2 className="text-2xl md:text-3xl font-bold text-white">Syllabus & Curriculum</h2>
-                 </div>
-                 <p className="text-slate-400 text-sm max-w-xl">Access the complete credit breakdown and course structure for 2024-2027.</p>
-               </div>
-             </div>
-
-             <div className="relative z-10 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20 flex items-center gap-2 group-hover:translate-x-1">
-                View PDF <span>→</span>
-             </div>
-          </div>
-
-          {/* 2. ACADEMIC BATCHES */}
-          <div className="md:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-8 hover:border-slate-600 transition-all relative overflow-hidden">
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-slate-400"></span> Academic Batches
-            </h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => openBatch("2024-26")} className="bg-slate-800/50 hover:bg-indigo-600 border border-white/5 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group/btn">
-                <span className="block text-[10px] text-slate-400 group-hover/btn:text-indigo-200 mb-1 uppercase tracking-wider">Senior Cohort</span>
-                <span className="block text-lg font-bold text-white">2024 - 26</span>
-              </button>
-              <button onClick={() => openBatch("2025-27")} className="bg-slate-800/50 hover:bg-indigo-600 border border-white/5 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group/btn">
-                <span className="block text-[10px] text-slate-400 group-hover/btn:text-indigo-200 mb-1 uppercase tracking-wider">Junior Cohort</span>
-                <span className="block text-lg font-bold text-white">2025 - 27</span>
-              </button>
+        {/* ── SYLLABUS BANNER ── */}
+        <div onClick={openSyllabus} className="card-hover" style={{
+          background: 'linear-gradient(135deg,#0D1A16,#1A302A)',
+          borderRadius: '20px',
+          padding: 'clamp(20px,4vw,28px)',
+          marginBottom: '24px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '14px',
+              background: 'rgba(29,158,117,0.2)',
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="#1D9E75" strokeWidth="1.8">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
             </div>
-          </div>
-
-          {/* 3. PLACEMENT CELL */}
-          <div className="md:col-span-1 bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 hover:border-emerald-500/50 transition-all relative overflow-hidden flex flex-col justify-between">
-             <div>
-               <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 mb-4">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-               </div>
-               <h3 className="text-lg font-bold text-white">Placement Cell</h3>
-               <p className="text-slate-500 text-xs mt-2 mb-6">Manage internship profiles.</p>
-             </div>
-
-             <div className="space-y-2">
-               <button onClick={openInternshipForm} className="w-full py-2 bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-white/5 transition-all">
-                 Student Form
-               </button>
-               {isPlacementRep && (
-                 <button onClick={openDashboard} className="w-full py-2 bg-emerald-900/30 hover:bg-emerald-500 hover:text-white text-emerald-400 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-emerald-500/30 transition-all">
-                   Rep Dashboard
-                 </button>
-               )}
-             </div>
-          </div>
-
-          {/* 4. GOVT EXAMS & UPSKILLING */}
-          <div className="md:col-span-1 flex flex-col gap-6">
-            <div onClick={openGovtExams} className="flex-1 bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 hover:border-rose-500/50 transition-all cursor-pointer group flex items-center gap-4">
-              <div className="w-10 h-10 bg-rose-500/20 rounded-xl flex items-center justify-center text-rose-400 group-hover:rotate-12 transition-transform">
-                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center',
+                gap: '8px', marginBottom: '4px' }}>
+                <span style={{
+                  background: '#1D9E75', color: '#fff', fontSize: '9px',
+                  fontWeight: '700', padding: '2px 8px', borderRadius: '100px',
+                  textTransform: 'uppercase', letterSpacing: '0.1em',
+                }}>Official</span>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Govt. Exams</h3>
-                <p className="text-slate-500 text-[10px] uppercase">UGC NET</p>
+              <div style={{ fontFamily: "'Lora',serif",
+                fontSize: 'clamp(16px,3vw,22px)', fontWeight: '600',
+                color: '#fff', marginBottom: '4px' }}>
+                Syllabus & Curriculum
               </div>
-            </div>
-
-            <div onClick={openUpskilling} className="flex-1 bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 hover:border-amber-500/50 transition-all cursor-pointer group flex items-center gap-4">
-              <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-400 group-hover:rotate-12 transition-transform">
-                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Upskilling</h3>
-                <p className="text-slate-500 text-[10px] uppercase">Tech Skills</p>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+                Complete credit breakdown for MLIS 2024–2027
               </div>
             </div>
           </div>
-          
-          {/* FEEDBACK BUTTON & ADMIN (Moved here since bottom bar is gone) */}
-          <div className="md:col-span-4 flex justify-center gap-4 mt-4">
-              <button onClick={() => setShowFeedbackModal(true)} className="px-6 py-2 bg-slate-900/50 hover:bg-slate-800 text-slate-400 hover:text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors border border-white/5">
-                 Send Feedback
-              </button>
-              {isAdmin && (
-                <button onClick={openAdminFeedback} className="px-6 py-2 bg-indigo-900/30 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors border border-indigo-500/30">
-                   Admin
-                </button>
-              )}
-          </div>
-
+          <div style={{
+            background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+            color: '#fff', borderRadius: '100px',
+            padding: '10px 22px', fontSize: '13px', fontWeight: '600',
+            whiteSpace: 'nowrap', flexShrink: 0,
+          }}>View PDF →</div>
         </div>
+
+        {/* ── QUICK ACCESS GRID ── */}
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', fontWeight: '700', color: '#1D9E75',
+            letterSpacing: '0.18em', textTransform: 'uppercase',
+            marginBottom: '14px' }}>
+            Quick Access
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))',
+            gap: '14px',
+          }}>
+
+            {/* ── DAILY CHALLENGE STREAK CARD ── */}
+            <StreakCard onOpen={onOpenChallenge} />
+
+            {/* Batch 2024-26 */}
+            <QuickCard
+              onClick={() => openBatch("2024-26")}
+              accent="#1D9E75"
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#1D9E75" strokeWidth="1.8">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>}
+              title="Batch 2024–26"
+              subtitle="Senior cohort · Papers & notes"
+            />
+
+            {/* Batch 2025-27 */}
+            <QuickCard
+              onClick={() => openBatch("2025-27")}
+              accent="#0F6E56"
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#0F6E56" strokeWidth="1.8">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>}
+              title="Batch 2025–27"
+              subtitle="Junior cohort · Papers & notes"
+            />
+
+            {/* Placement */}
+            <QuickCard
+              onClick={openInternshipForm}
+              accent="#27500A"
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#27500A" strokeWidth="1.8">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+              </svg>}
+              title="Placement Cell"
+              subtitle="Fill your internship profile"
+            />
+
+            {/* Events */}
+            <QuickCard
+              onClick={openGovtExams}
+              accent="#3C3489"
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#3C3489" strokeWidth="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>}
+              title="Events & Exams"
+              subtitle="LIS events, UGC NET, GATE"
+            />
+
+            {/* Upskilling */}
+            <QuickCard
+              onClick={openUpskilling}
+              accent="#633806"
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#633806" strokeWidth="1.8">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>}
+              title="Upskilling"
+              subtitle="Tools, tech & certifications"
+            />
+
+            {/* Admin */}
+            {isAdmin && (
+              <QuickCard
+                onClick={openDashboard}
+                accent="#A32D2D"
+                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#A32D2D" strokeWidth="1.8">
+                  <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>}
+                title="Admin Dashboard"
+                subtitle="Manage users, posts, placement"
+              />
+            )}
+
+            {/* Placement Rep */}
+            {isPlacementRep && !isAdmin && (
+              <QuickCard
+                onClick={openDashboard}
+                accent="#085041"
+                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#085041" strokeWidth="1.8">
+                  <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>}
+                title="Placement Dashboard"
+                subtitle="View student submissions"
+              />
+            )}
+
+          </div>
+        </div>
+
+        {/* ── FEEDBACK ROW ── */}
+        <div style={{
+          marginTop: '28px', display: 'flex',
+          justifyContent: 'center', gap: '10px', flexWrap: 'wrap',
+        }}>
+          <button onClick={() => setShowFeedback(true)} style={{
+            background: 'transparent', color: '#5A7A6E',
+            border: '1.5px solid rgba(29,158,117,0.2)',
+            borderRadius: '100px', padding: '8px 20px',
+            fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+          }}>Send Feedback</button>
+
+          {isAdmin && (
+            <button onClick={openAdminFeedback} style={{
+              background: 'rgba(29,158,117,0.08)', color: '#085041',
+              border: '1.5px solid rgba(29,158,117,0.2)',
+              borderRadius: '100px', padding: '8px 20px',
+              fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+            }}>View Feedback</button>
+          )}
+        </div>
+
       </div>
 
-      {showFeedbackModal && <FeedbackModal onClose={() => setShowFeedbackModal(false)} />}
+      {showFeedback && (
+        <FeedbackModal onClose={() => setShowFeedback(false)} />
+      )}
     </div>
   )
 }
