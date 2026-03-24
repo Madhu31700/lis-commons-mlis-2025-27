@@ -2,178 +2,217 @@ import { useState, useEffect } from "react"
 import { db } from "../firebase"
 import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore"
 
-export default function AdminPanel({ goBack }) {
-  const [email, setEmail] = useState("")
-  const [role, setRole] = useState("student")
-  const [users, setUsers] = useState([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterRole, setFilterRole] = useState("All") 
-  const [loading, setLoading] = useState(false)
+const ROLES = ["student","admin","faculty","Research Fellow","Alumni","Project Personnel"]
 
-  // 1. Fetch Users
+const ROLE_STYLE = {
+  admin:              { bg: "#FCEBEB", color: "#A32D2D" },
+  faculty:            { bg: "#FAEEDA", color: "#633806" },
+  student:            { bg: "#E1F5EE", color: "#085041" },
+  "Research Fellow":  { bg: "#EEEDFE", color: "#3C3489" },
+  Alumni:             { bg: "#E6F1FB", color: "#0C447C" },
+  "Project Personnel":{ bg: "#EAF3DE", color: "#27500A" },
+}
+
+export default function AdminPanel({ goBack }) {
+  const [email,      setEmail]      = useState("")
+  const [role,       setRole]       = useState("student")
+  const [users,      setUsers]      = useState([])
+  const [search,     setSearch]     = useState("")
+  const [filterRole, setFilterRole] = useState("All")
+  const [loading,    setLoading]    = useState(false)
+
+  useEffect(() => { fetchUsers() }, [])
+
   const fetchUsers = async () => {
     try {
       const snap = await getDocs(collection(db, "allowed_users"))
       setUsers(snap.docs.map(d => ({ email: d.id, ...d.data() })))
-    } catch (err) {
-      console.error("Error fetching users:", err)
-    }
+    } catch (err) { console.error(err) }
   }
 
-  useEffect(() => { fetchUsers() }, [])
-
-  // 2. Add User
-  const handleAdd = async (e) => {
-    e.preventDefault()
-    if(!email.includes("@")) return alert("Invalid Email")
-    
+  const handleAdd = async () => {
+    if (!email.includes("@")) return alert("Invalid email")
     setLoading(true)
     try {
       await setDoc(doc(db, "allowed_users", email), {
-        role: role,
-        addedAt: serverTimestamp()
+        role, addedAt: serverTimestamp(),
       })
       setEmail("")
       fetchUsers()
-      alert(`Success! ${email} added as ${role}.`)
-    } catch (err) { 
-      alert("Error: " + err.message) 
-    }
+    } catch (err) { alert("Error: " + err.message) }
     setLoading(false)
   }
 
-  // 3. Delete User
   const handleDelete = async (userEmail) => {
-    if(!window.confirm(`Remove access for ${userEmail}?`)) return
+    if (!window.confirm(`Remove access for ${userEmail}?`)) return
     try {
       await deleteDoc(doc(db, "allowed_users", userEmail))
       fetchUsers()
-    } catch (err) { 
-      alert("Error: " + err.message) 
-    }
+    } catch (err) { alert("Error: " + err.message) }
   }
 
-  // 4. Filtering Logic
-  const filteredUsers = users.filter(u => {
-    const matchesSearch = u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = filterRole === "All" || (u.role && u.role.toLowerCase() === filterRole.toLowerCase())
-    return matchesSearch && matchesRole
+  const filtered = users.filter(u => {
+    const matchSearch = u.email.toLowerCase().includes(search.toLowerCase())
+    const matchRole   = filterRole === "All" || u.role === filterRole
+    return matchSearch && matchRole
   })
 
-  // Role Options
-  const roles = ["student", "admin", "faculty", "Research Fellow", "Alumni", "Project Personnel"]
+  const inp = {
+    width: '100%', padding: '10px 14px',
+    border: '1.5px solid rgba(29,158,117,0.2)',
+    borderRadius: '10px', fontSize: '13px', outline: 'none',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    color: '#0D1A16', background: '#fff',
+  }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-12 font-sans">
-      <button onClick={goBack} className="text-slate-500 hover:text-white mb-6 md:mb-8 flex items-center gap-2 text-sm md:text-base">
-        ← Back to Admin Hub
-      </button>
-      
-      <h1 className="text-2xl md:text-3xl font-black mb-6 md:mb-8 uppercase tracking-widest text-indigo-500">User Access Control</h1>
+    <div style={{
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#F5F7F6', minHeight: '100vh',
+    }}>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-        
-        {/* LEFT: ADD USER FORM (Mobile: Normal, Desktop: Sticky) */}
-        <div className="lg:col-span-4 h-fit bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-slate-800 lg:sticky lg:top-8">
-          <h2 className="text-xl font-bold mb-4 md:mb-6 text-white">Whitelist User</h2>
-          <form onSubmit={handleAdd} className="space-y-4">
+      {/* Header */}
+      <div style={{
+        background: 'linear-gradient(160deg,#0D1A16,#1A302A)',
+        padding: 'clamp(28px,4vw,40px) clamp(16px,4vw,32px)',
+      }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <button onClick={goBack} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.5)', fontSize: '13px',
+            fontWeight: '500', marginBottom: '16px', padding: 0,
+          }}>← Back to Admin</button>
+          <h1 style={{ fontFamily: "'Lora',serif",
+            fontSize: 'clamp(22px,3vw,32px)', fontWeight: '600',
+            color: '#fff', marginBottom: '4px' }}>
+            User Access Control
+          </h1>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+            {users.length} whitelisted users
+          </p>
+        </div>
+      </div>
+
+      <div style={{
+        maxWidth: '1000px', margin: '0 auto',
+        padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,32px)',
+        display: 'grid',
+        gridTemplateColumns: 'clamp(260px,30%,320px) 1fr',
+        gap: '20px', alignItems: 'start',
+      }}>
+
+        {/* Add user */}
+        <div style={{
+          background: '#fff',
+          border: '1.5px solid rgba(29,158,117,0.12)',
+          borderRadius: '18px', padding: '24px',
+          position: 'sticky', top: '80px',
+        }}>
+          <h2 style={{ fontFamily: "'Lora',serif", fontSize: '17px',
+            fontWeight: '600', color: '#0D1A16', marginBottom: '18px' }}>
+            Whitelist User
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
-              <input 
-                type="email" 
-                value={email}
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '700',
+                color: '#1D9E75', textTransform: 'uppercase',
+                letterSpacing: '0.1em', marginBottom: '6px' }}>
+                Email Address
+              </label>
+              <input type="email" value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="user@example.com" 
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 md:p-4 mt-2 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
-              />
-            </div>
-            
-            <div>
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Role</label>
-               <select 
-                 value={role}
-                 onChange={e => setRole(e.target.value)}
-                 className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 md:p-4 mt-2 outline-none appearance-none cursor-pointer text-sm"
-               >
-                 {roles.map(r => <option key={r} value={r}>{r}</option>)}
-               </select>
+                placeholder="user@isibang.ac.in"
+                style={inp} />
             </div>
 
-            <button 
-              disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 md:py-4 rounded-xl font-bold uppercase tracking-widest mt-4 transition-all shadow-lg active:scale-95 disabled:opacity-50 text-xs md:text-sm"
-            >
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '700',
+                color: '#1D9E75', textTransform: 'uppercase',
+                letterSpacing: '0.1em', marginBottom: '6px' }}>
+                Role
+              </label>
+              <select value={role} onChange={e => setRole(e.target.value)}
+                style={inp}>
+                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+
+            <button onClick={handleAdd} disabled={loading} style={{
+              background: 'linear-gradient(135deg,#1D9E75,#0F6E56)',
+              color: '#fff', border: 'none', borderRadius: '10px',
+              padding: '11px', fontSize: '13px', fontWeight: '600',
+              cursor: 'pointer', opacity: loading ? 0.6 : 1,
+              marginTop: '4px',
+            }}>
               {loading ? "Adding..." : "Grant Access"}
             </button>
-          </form>
+          </div>
         </div>
 
-        {/* RIGHT: USER LIST + SEARCH */}
-        <div className="lg:col-span-8 bg-slate-900/50 p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col h-[600px] md:h-[80vh]">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <h2 className="text-lg md:text-xl font-bold">Authorized Users ({users.length})</h2>
-            
-            {/* SEARCH BAR */}
-            <div className="relative w-full md:w-64">
-              <input 
-                type="text" 
-                placeholder="Search emails..." 
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-10 pr-4 text-sm focus:border-indigo-500 outline-none"
-              />
-              <svg className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
+        {/* User list */}
+        <div style={{
+          background: '#fff',
+          border: '1.5px solid rgba(29,158,117,0.12)',
+          borderRadius: '18px', padding: '24px',
+        }}>
+          <div style={{ display: 'flex', gap: '10px',
+            marginBottom: '16px', flexWrap: 'wrap' }}>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search emails..."
+              style={{ ...inp, flex: 1, minWidth: '160px' }} />
+            <select value={filterRole} onChange={e => setFilterRole(e.target.value)}
+              style={{ ...inp, width: 'auto' }}>
+              <option value="All">All Roles</option>
+              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
           </div>
 
-          {/* ROLE TABS */}
-          <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-800 pb-4">
-            {["All", ...roles].map(r => (
-              <button
-                key={r}
-                onClick={() => setFilterRole(r)}
-                className={`px-3 py-1 text-[10px] md:text-xs font-bold uppercase rounded-full transition-colors ${
-                  filterRole === r 
-                  ? "bg-indigo-500 text-white" 
-                  : "bg-slate-800 text-slate-400 hover:text-white"
-                }`}
-              >
-                {r}
-              </button>
-            ))}
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#1D9E75',
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            marginBottom: '12px' }}>
+            {filtered.length} users
           </div>
 
-          {/* SCROLLABLE LIST */}
-          <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1">
-            {filteredUsers.length === 0 ? (
-               <p className="text-slate-500 text-center py-10">No users found.</p>
-            ) : (
-              filteredUsers.map(u => (
-                <div key={u.email} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-white/5 hover:bg-slate-800 transition-colors group gap-3">
-                  <div>
-                    <p className="font-bold text-sm text-slate-200 break-all">{u.email}</p>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded inline-block mt-1 ${
-                      u.role === 'admin' ? 'bg-indigo-500/20 text-indigo-400' : 
-                      u.role === 'faculty' ? 'bg-rose-500/20 text-rose-400' :
-                      'bg-emerald-500/20 text-emerald-400'
-                    }`}>
-                      {u.role || "student"}
-                    </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px',
+            maxHeight: '60vh', overflowY: 'auto' }}>
+            {filtered.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0',
+                color: '#8FA89E', fontSize: '14px' }}>
+                No users found.
+              </div>
+            ) : filtered.map(u => {
+              const rs = ROLE_STYLE[u.role] || ROLE_STYLE.student
+              return (
+                <div key={u.email} style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', gap: '12px',
+                  background: '#F5F7F6',
+                  border: '1px solid rgba(29,158,117,0.08)',
+                  borderRadius: '10px', padding: '10px 14px',
+                  flexWrap: 'wrap',
+                }}>
+                  <div style={{ flex: 1, minWidth: '160px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600',
+                      color: '#0D1A16', wordBreak: 'break-all',
+                      marginBottom: '3px' }}>{u.email}</div>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: '100px',
+                      fontSize: '10px', fontWeight: '700',
+                      background: rs.bg, color: rs.color,
+                    }}>{u.role || 'student'}</span>
                   </div>
-                  <button 
-                    onClick={() => handleDelete(u.email)}
-                    className="w-full sm:w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100"
-                    title="Revoke Access"
-                  >
-                    <span className="sm:hidden text-xs font-bold mr-2">REMOVE</span> ✕
-                  </button>
+                  <button onClick={() => handleDelete(u.email)} style={{
+                    background: '#FCEBEB', color: '#A32D2D',
+                    border: 'none', borderRadius: '8px',
+                    padding: '6px 12px', fontSize: '11px',
+                    fontWeight: '600', cursor: 'pointer', flexShrink: 0,
+                  }}>Remove</button>
                 </div>
-              ))
-            )}
+              )
+            })}
           </div>
         </div>
-
       </div>
     </div>
   )

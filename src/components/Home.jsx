@@ -131,7 +131,7 @@ export default function Home({
                 Syllabus & Curriculum
               </div>
               <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
-                Complete credit breakdown for MLIS 2024–2027
+                Complete credit breakdown of Course
               </div>
             </div>
           </div>

@@ -9,9 +9,7 @@ const ADMIN_EMAILS = [
 export default function Footer({ visitCount }) {
   const { user } = useAuth()
   const isAdmin = user && ADMIN_EMAILS.includes(user.email)
-  const today   = new Date().toLocaleDateString("en-IN", {
-    day: "numeric", month: "short", year: "numeric"
-  })
+  const today = "24 Mar 2026" // Update manually when you deploy new changes
 
   return (
     <footer style={{

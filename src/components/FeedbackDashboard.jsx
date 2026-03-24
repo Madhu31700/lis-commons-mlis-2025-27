@@ -2,109 +2,215 @@ import { useState, useEffect } from "react"
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore"
 import { db } from "../firebase"
 
+const TYPE_STYLE = {
+  "Bug Report":         { bg: "#FCEBEB", color: "#A32D2D" },
+  "Feature Request":    { bg: "#EEEDFE", color: "#3C3489" },
+  "General Suggestion": { bg: "#E6F1FB", color: "#0C447C" },
+  "Login / Auth Issue": { bg: "#FBEAF0", color: "#72243E" },
+  "Design / UI Feedback":{ bg: "#EAF3DE", color: "#27500A" },
+  "Performance Issue":  { bg: "#FAEEDA", color: "#633806" },
+}
+
+function getTypeStyle(type) {
+  for (const key of Object.keys(TYPE_STYLE)) {
+    if (type?.includes(key.split(' ')[0])) return TYPE_STYLE[key]
+  }
+  return { bg: "#E1F5EE", color: "#085041" }
+}
+
+function timeAgo(ts) {
+  if (!ts) return "—"
+  const date = ts.toDate ? ts.toDate() : new Date(ts)
+  const diff = Math.floor((Date.now() - date) / 1000)
+  if (diff < 60)     return "just now"
+  if (diff < 3600)   return `${Math.floor(diff/60)}m ago`
+  if (diff < 86400)  return `${Math.floor(diff/3600)}h ago`
+  return `${Math.floor(diff/86400)}d ago`
+}
+
 export default function FeedbackDashboard({ goBack }) {
   const [feedbacks, setFeedbacks] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading,   setLoading]   = useState(true)
+  const [filter,    setFilter]    = useState("All")
+  const [search,    setSearch]    = useState("")
 
   useEffect(() => {
     const q = query(collection(db, "feedback"), orderBy("date", "desc"))
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setFeedbacks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+    const unsub = onSnapshot(q, snap => {
+      setFeedbacks(snap.docs.map(d => ({ id: d.id, ...d.data() })))
       setLoading(false)
     })
-    return () => unsubscribe()
+    return () => unsub()
   }, [])
 
   const handleDelete = async (id) => {
-    if(confirm("Permanently delete this message?")) {
-      await deleteDoc(doc(db, "feedback", id))
-    }
+    if (!window.confirm("Delete this feedback?")) return
+    await deleteDoc(doc(db, "feedback", id))
   }
 
-  const getBadgeStyle = (type) => {
-    switch(type) {
-      case 'Bug': return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-      case 'Internship': return 'bg-teal-500/10 text-teal-400 border-teal-500/20'
-      case 'Content': return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-      default: return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-    }
-  }
+  const types = ["All", ...new Set(feedbacks.map(f => f.type).filter(Boolean))]
+
+  const filtered = feedbacks.filter(f => {
+    const matchFilter = filter === "All" || f.type === filter
+    const matchSearch = search === "" ||
+      f.message?.toLowerCase().includes(search.toLowerCase()) ||
+      f.userEmail?.toLowerCase().includes(search.toLowerCase())
+    return matchFilter && matchSearch
+  })
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 p-6 md:p-12 font-sans">
-      
-      {/* HEADER */}
-      <div className="max-w-5xl mx-auto mb-10 flex items-center justify-between">
-        <div>
-          <button onClick={goBack} className="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors mb-4">
-            ← Back to Home
-          </button>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">Admin Console</h1>
-          <p className="text-slate-400 mt-2">Manage user feedback and system reports.</p>
+    <div style={{
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      background: '#F5F7F6', minHeight: '100vh',
+    }}>
+
+      {/* Header */}
+      <div style={{
+        background: 'linear-gradient(160deg,#0D1A16,#1A302A)',
+        padding: 'clamp(28px,4vw,40px) clamp(16px,4vw,32px)',
+      }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <button onClick={goBack} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.5)', fontSize: '13px',
+            fontWeight: '500', marginBottom: '16px', padding: 0,
+          }}>← Back to Admin</button>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between',
+            alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h1 style={{ fontFamily: "'Lora',serif",
+                fontSize: 'clamp(22px,3vw,32px)', fontWeight: '600',
+                color: '#fff', marginBottom: '4px' }}>
+                Feedback Inbox
+              </h1>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+                {feedbacks.length} total · live updates
+              </p>
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(29,158,117,0.15)',
+              border: '1px solid rgba(29,158,117,0.2)',
+              borderRadius: '100px', padding: '6px 14px',
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%',
+                background: '#1D9E75' }} />
+              <span style={{ fontSize: '11px', fontWeight: '600',
+                color: '#5DCAA5' }}>Live</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* DASHBOARD CONTAINER */}
-      <div className="max-w-5xl mx-auto w-full bg-[#0B1120] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-        
-        {/* TOOLBAR */}
-        <div className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-6 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-ping absolute opacity-75"></div>
-              <div className="w-3 h-3 bg-emerald-500 rounded-full relative"></div>
-            </div>
-            <span className="font-bold text-white">Live Inbox</span>
-          </div>
-          <div className="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 text-xs font-mono font-bold text-slate-300">
-            {feedbacks.length} Items
-          </div>
+      <div style={{
+        maxWidth: '1000px', margin: '0 auto',
+        padding: 'clamp(20px,3vw,32px) clamp(16px,4vw,32px)',
+      }}>
+
+        {/* Search + filter */}
+        <div style={{ display: 'flex', gap: '10px',
+          marginBottom: '20px', flexWrap: 'wrap' }}>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search messages or emails..."
+            style={{
+              flex: 1, minWidth: '200px', padding: '9px 14px',
+              border: '1.5px solid rgba(29,158,117,0.2)',
+              borderRadius: '10px', fontSize: '13px', outline: 'none',
+              fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#0D1A16',
+              background: '#fff',
+            }} />
         </div>
 
-        {/* FEEDBACK LIST */}
-        <div className="p-6 bg-[#0B1120] min-h-[400px]">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-40 space-y-4">
-               <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-               <p className="text-slate-500 text-xs animate-pulse">Syncing Database...</p>
-            </div>
-          ) : feedbacks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
-              <p className="text-slate-400 font-bold">All caught up!</p>
-              <p className="text-slate-600 text-sm">No pending feedback.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {feedbacks.map((item) => (
-                <div key={item.id} className="group relative bg-slate-900/50 hover:bg-slate-900 border border-slate-800 hover:border-slate-600 rounded-xl p-6 transition-all duration-300 hover:shadow-lg">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold border border-slate-700">
-                        {item.user.charAt(0).toUpperCase()}
+        {/* Type filter pills */}
+        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap',
+          marginBottom: '20px' }}>
+          {types.map(t => (
+            <button key={t} onClick={() => setFilter(t)} style={{
+              padding: '5px 14px', borderRadius: '100px', border: 'none',
+              fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+              background: filter === t ? '#1D9E75' : 'rgba(29,158,117,0.08)',
+              color: filter === t ? '#fff' : '#085041',
+            }}>{t}</button>
+          ))}
+        </div>
+
+        {/* List */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0',
+            color: '#1D9E75' }}>Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div style={{
+            background: '#fff',
+            border: '1.5px solid rgba(29,158,117,0.1)',
+            borderRadius: '18px', padding: '60px',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
+            <p style={{ fontSize: '15px', color: '#5A7A6E',
+              fontWeight: '500' }}>No feedback yet.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {filtered.map(item => {
+              const ts = getTypeStyle(item.type)
+              return (
+                <div key={item.id} style={{
+                  background: '#fff',
+                  border: '1.5px solid rgba(29,158,117,0.1)',
+                  borderRadius: '16px', padding: '18px 20px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'flex-start', gap: '12px',
+                    marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center',
+                      gap: '10px' }}>
+                      <div style={{
+                        width: '32px', height: '32px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg,#1D9E75,#5DCAA5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: '13px', fontWeight: '700',
+                        flexShrink: 0,
+                      }}>
+                        {(item.userName || item.userEmail || '?').charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-slate-200 text-xs font-bold">{item.user}</p>
-                        <p className="text-slate-500 text-[10px] font-mono">{new Date(item.date).toLocaleString()}</p>
+                        <div style={{ fontSize: '13px', fontWeight: '600',
+                          color: '#0D1A16' }}>
+                          {item.userName || 'Anonymous'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#8FA89E' }}>
+                          {item.userEmail} · {timeAgo(item.date)}
+                        </div>
                       </div>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${getBadgeStyle(item.type)}`}>
-                      {item.type}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center',
+                      gap: '8px' }}>
+                      <span style={{
+                        padding: '3px 10px', borderRadius: '100px',
+                        fontSize: '10px', fontWeight: '700',
+                        background: ts.bg, color: ts.color,
+                      }}>{item.type}</span>
+                      <button onClick={() => handleDelete(item.id)} style={{
+                        background: '#FCEBEB', color: '#A32D2D',
+                        border: 'none', borderRadius: '8px',
+                        width: '28px', height: '28px',
+                        display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', cursor: 'pointer',
+                        fontSize: '12px',
+                      }}>✕</button>
+                    </div>
                   </div>
-                  <div className="pl-11 pr-12">
-                    <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{item.message}</p>
-                  </div>
-                  <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={() => handleDelete(item.id)} className="p-2 bg-slate-800 hover:bg-red-500/10 hover:text-red-400 text-slate-500 rounded-lg transition-colors" title="Delete">
-                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                     </button>
-                  </div>
+                  <p style={{ fontSize: '13px', color: '#2E4F44',
+                    lineHeight: '1.65', whiteSpace: 'pre-wrap',
+                    paddingLeft: '42px' }}>
+                    {item.message}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

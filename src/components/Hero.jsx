@@ -27,7 +27,7 @@ export default function Hero() {
             }}>
               <span style={{ width: '6px', height: '6px', background: '#1D9E75',
                 borderRadius: '50%' }} />
-              MLIS 2024–27 · DRTC · ISI Bangalore
+              MLIS 2025–27 · DRTC · ISI Bangalore
             </div>
             <h1 style={{
               fontFamily: "'Lora',serif",
